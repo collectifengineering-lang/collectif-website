@@ -1,0 +1,225 @@
+/* #app { height: 100% }
+html,
+body {
+  position: relative;
+  height: 100%;
+} */
+
+/* body {
+  background: #eee;
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #000;
+  margin: 0;
+  padding: 0;
+} */
+.container {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  overflow: visible !important;
+  overflow-y: visible !important;
+}
+
+.containerSecondSection {
+  width: 100%;
+  height: 100%;
+}
+
+.backToPortfolioSection {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  z-index: 1000;
+  background-color: white;
+  padding: 10px 0;
+  margin-bottom: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  will-change: transform;
+}
+
+.goBackText {
+  margin: 20px;
+  font-size: 2rem;
+}
+
+.swiper {
+  width: 100%;
+  height: auto;
+}
+
+.swiper-slide {
+  text-align: center;
+  font-size: 18px;
+  background: #fff;
+}
+
+.swiper .swiper-slide {
+  height: 300px;
+  line-height: 300px;
+}
+
+.swiper .swiper-slide:nth-child(2n) {
+  height: 500px;
+  line-height: 500px;
+}
+
+.containerCarrouselSwiper {
+    width: 1024px;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+}
+
+.swiperContainer {
+    width: 100%;
+    height: 100%;
+}
+
+
+.firstSection {
+     width: 100%;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    background-color: var(--color-bg3);
+}
+
+.secondSection {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.secondSection__leftSide {
+    flex: 1;
+    width: 70%;
+    height: 100%;
+    max-width: 630px;
+}
+
+.secondSection__rightSide {
+    flex: 1;
+    width: 30%;
+    height: 100%;
+    max-width: 400px;
+}
+
+.secondSection__leftSide__content {
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+}
+
+.titlesWork {
+  font-size: 1.5rem;
+}
+
+.descriptionWork {
+  margin-top: 20px;
+  color: var(--color-secondary-text)
+}
+
+.seconSection__rightSide__content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+}
+
+.categoryWork {
+  font-size: 0.8rem;
+  color: var(--color-secondary-text)
+}
+
+.contentText {
+  font-size: 1rem;
+  color: var(--color-secondary-text)
+}
+
+.verticalLine {
+  width: 1px;
+  background-color: var(--color-smokedGrey-text);
+  /* height: 100%; */
+  margin: 5px;
+}
+
+.thirdSection {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+}
+
+.moreProjectsContainer {
+  display: flex;
+  gap:20px;
+  justify-content: space-between;
+  background-color: #007bff;
+  margin: 20px;
+}
+
+.cardContainer {
+  width: 100%;
+  height: 300px;
+  background-color: var(--color-smokedGrey-text);
+  transition: transform 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  align-content: center;
+}
+
+.cardContainer:hover {
+  transform: translateY(-15px);
+}
+
+.card {
+  width: 100%;
+  height: 100%;
+}
+
+.cardTitle {
+  font-size: 0.9rem; /* Ajusta el tamaño del texto */
+  font-weight: lighter;
+  margin-bottom: 10px;
+  text-align: center; /* Centrar el texto */
+}
+
+.cardImageSection {
+  width: 100%;
+  height: 80%;
+  overflow: hidden;
+}
+
+.cardImageSection img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+}
+
+.contentSection {
+  width: 100%;
+  height: 20%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centra el contenido verticalmente */
+  align-items: center;
+}
+
+.thirdSection_textTitle {
+  font-size: 24px;
+}

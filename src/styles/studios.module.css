@@ -1,0 +1,79 @@
+.container {
+    width: 100%;
+    height: 100%;
+}
+
+.gridContainer {
+    width: 100%;
+    height: 100%;
+}
+
+.card {
+    width: 320px;
+    height: 450px;
+    margin: 30px;
+    border-radius: 25px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    text-align: center;
+    position: relative;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.titleContainer {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    flex-direction: column-reverse;
+}
+
+.titleText {
+    font-size: 1.8rem;
+    font-weight: lighter;
+}
+
+.title {
+    color: rgb(255, 255, 255);
+    font-size: 1.4rem;
+    position: relative;
+}
+
+.content {
+    background-color: rgba(245, 245, 245, 0.5);
+    color: var(--color-text);
+    padding: 1rem;
+    border-radius: 0 0 25px 25px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    bottom: -100%;
+    left: 0;
+    transition: bottom .6s ease;
+    box-shadow: 0px 5px 50px rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+}
+.card[data-active="true"] .content {
+    bottom: 0; 
+}
+
+.show {
+    bottom: 0;
+}
+
+.cardContent {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

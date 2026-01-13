@@ -1,0 +1,45 @@
+.heroContainer {
+    width: 100%;
+    height: 100%; /* Asegura que el Hero tenga la altura completa de la ventana */
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.section1 {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: white;
+    border-radius: 30px 30px 0px 0px;
+    z-index: 2;
+}
+
+
+.section2
+ {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: white;
+    z-index: 2;
+}
+
+
+.section3
+ {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: white;
+    z-index: 2;
+}
+
+.section4
+ {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: white;
+    z-index: 2;
+}

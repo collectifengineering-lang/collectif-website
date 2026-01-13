@@ -1,0 +1,147 @@
+/* TEAM HEADER COMPONENT */
+
+.containerPeopleSection {
+  width: 100%;
+  height: 100%;
+  background-image: url('/culture/graffiti.png');
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-attachment: fixed;
+}
+
+.headerSection {
+  width: 100%;
+  height: 350px;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+  padding: 40px;
+}
+
+.titleHeader {
+  font-size: 1.8rem;
+  font-weight: lighter;
+  color: var(--color-text);
+}
+
+
+/* TEAM SECTION COMPONENT */
+
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+  }
+  
+  .scrollLine {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+  }
+
+  .scrollLine::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .item {
+    width: 500px;
+    height: 400px;
+    flex: 0 0 auto;
+    position: relative;
+  }
+  
+  .imageWrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    border-radius: 40px;
+  }
+    
+  .bottomSection {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .textUnified {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+  }
+
+  .leftSideBottomSection {
+    width:70%;
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    text-align: center;
+    gap: 20px;
+    padding: 20px;
+  }
+
+ .textTitleBottomSection {
+    font-size: var(--bg-size);
+    color: var(--color-collectif-pink);
+    font-weight: bold;
+  }
+
+  @keyframes flicker {
+    0%, 19.9%, 22%, 62.9%, 64%, 70%, 100% {
+      opacity: 0.99;
+      text-shadow: 
+        -1px -1px 0 var(--color-collectif-pink), 
+        1px -1px 0 var(--color-collectif-pink), 
+        -1px 1px 0 var(--color-collectif-pink), 
+        1px 1px 0 var(--color-collectif-pink), 
+        0 0 2px,
+        0 0 5px #ececec, 
+        0 0 15px #f501cc, 
+        0 0 2px #ff77f8, 
+        0 2px 3px #000000;
+    }
+    20%, 21.9%, 63%, 65%, 69.9% {
+      opacity: 0.4;
+      text-shadow: none;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .titleHeader {
+      font-size: 5.8rem;
+      color: var(--color-collectif-pink)
+    }
+ 
+    .headerSection {
+      width: 100%;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      flex-direction: row;
+      align-items: center;
+      padding: 10px;
+    }
+    
+    .leftSideBottomSection {
+      height: 100%;
+    }
+  }
+  

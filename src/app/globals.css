@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+} */
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+html, body {
+  margin: 0;
+  padding-top: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+:root {
+  --color-main-background:  rgb(254, 249, 255);
+  --color-bg1: rgb(254, 249, 255);  /* Color de fondo principal */
+  --color-bg2: rgb(0, 255, 255);    /* Color de fondo secundario */
+  --color-bg3: rgb(241, 241, 241);
+  --color-text: rgb(20, 20, 20);    /* Color de texto */
+  --color1: 230, 40, 131;            
+  --color2: 95, 255, 161;             
+  --color3: 95, 255, 161;
+  --color4: 230, 40, 131; 
+  --color5: 95, 255, 161; 
+  --color6: 230, 40, 131; 
+  --color-interactive: 95, 255, 161; /* Color para elementos interactivos */
+  --circle-size: 80%;              /* Tamaño relativo de un círculo */
+  --blending: hard-light;          /* Modo de mezcla para efectos de color */
+  --bg-size: 300%;
+  --color-collectif-lightGreen: #5FC2A1;
+  --color-collectif-pink: #e62883;
+  --color-collectif-violet: #755BA5;
+  --color-secondary-text: rgb(114, 114, 114);
+  --color-smokedGrey-text: #D9D9D9;
+  --custom-font-size: 5rem;
+}
+
+.container, .mainContainer, .contentContainer {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-y: hidden;
+}
+
+/*block for doing right click Open img in a new tab*/
+img {
+  pointer-events: none;
+  user-select: none;
+}
