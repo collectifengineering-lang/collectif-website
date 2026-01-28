@@ -585,21 +585,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 36,
-            title: "Test",
-            client: "test",
-            description: "test",
-            category: "Residential",
-            photoCredit: "test",
-            architect: "test",
-            location: "test",
-            article: "",
-            images:
-            [
-                "zoho-books-collectifmep.png",
-            ]
-        },
-        {
             id: 31,
             title: "Shen Beauty",
             client: "Shen Beauty",
