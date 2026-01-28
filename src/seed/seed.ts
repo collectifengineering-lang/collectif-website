@@ -36,23 +36,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 3,
-            title: "70 Mulberry Cultural Center",
-            client: "NYC Division of Public Buildings",
-            description: "Following a devastating fire in 2020, the City of New York is in the process of rebuilding 70 Mulberry Street to house community resources. COLLECTIF Engineering led the MEP-FP interior fitout design for approximately 33,000 GSF of the building, consisting of new cafeteria and dining spaces, offices, meeting rooms,community rooms, theater, classrooms, and dance studios.",
-            category: "Cultural",
-            photoCredit: "Grimshaw",
-            architect: "Grimshaw",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "70-mulberry-1.jpg",
-                "70-mulberry-2.jpg",
-                "70-mulberry-3.jpg",
-            ]
-        },
-        {
             id: 2,
             title: "Bathhouse Flatiron",
             client: "Bathhouse",
@@ -67,6 +50,23 @@ export const portfolioData: SeedData = {
                 "bathhousem-1.jpg",
                 "bathhousem-2.jpg",
                 "bathhousem-3.jpg",
+            ]
+        },
+        {
+            id: 3,
+            title: "70 Mulberry Cultural Center",
+            client: "NYC Division of Public Buildings",
+            description: "Following a devastating fire in 2020, the City of New York is in the process of rebuilding 70 Mulberry Street to house community resources. COLLECTIF Engineering led the MEP-FP interior fitout design for approximately 33,000 GSF of the building, consisting of new cafeteria and dining spaces, offices, meeting rooms,community rooms, theater, classrooms, and dance studios.",
+            category: "Cultural",
+            photoCredit: "Grimshaw",
+            architect: "Grimshaw",
+            location: "New York, New York",
+            article: "",
+            images:
+            [
+                "70-mulberry-1.jpg",
+                "70-mulberry-2.jpg",
+                "70-mulberry-3.jpg",
             ]
         },
         {
