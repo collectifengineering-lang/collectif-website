@@ -585,6 +585,18 @@ export const portfolioData: SeedData = {
             ]
         },
         {
+            id: 36,
+            title: "Test",
+            category: "Residential",
+            photoCredit: "",
+            architect: "",
+            location: "",
+            article: "",
+            images:
+            [
+            ]
+        },
+        {
             id: 31,
             title: "Shen Beauty",
             client: "Shen Beauty",
@@ -679,18 +691,6 @@ export const portfolioData: SeedData = {
                 "citizenm-denver-1.jpg",
                 "citizenm-denver-2.jpg",
                 "citizenm-denver-3.jpg",
-            ]
-        },
-        {
-            id: 36,
-            title: "Test",
-            category: "Residential",
-            photoCredit: "",
-            architect: "",
-            location: "",
-            article: "",
-            images:
-            [
             ]
         }
     ]
