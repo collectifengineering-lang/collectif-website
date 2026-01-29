@@ -1,8 +1,52 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import styles from "@/styles/contact.module.css";
 
 const ContactCard = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    company: "",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus("success");
+        setFormData({ name: "", email: "", company: "", subject: "", message: "" });
+      } else {
+        setSubmitStatus("error");
+      }
+    } catch {
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.cardContainer}>
@@ -11,6 +55,113 @@ const ContactCard = () => {
             Whether you are embarking on a new development or renovating an existing space, drop us
             a line. Let's design the future together.
           </p>
+        </div>
+
+        {/* Contact Form Section */}
+        <div className={styles.formSection}>
+          <h2 className={styles.formTitle}>Send Us a Message</h2>
+          <form onSubmit={handleSubmit} className={styles.contactForm}>
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="name" className={styles.formLabel}>
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className={styles.formInput}
+                  placeholder="Your name"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="email" className={styles.formLabel}>
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className={styles.formInput}
+                  placeholder="your@email.com"
+                />
+              </div>
+            </div>
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="company" className={styles.formLabel}>
+                  Company
+                </label>
+                <input
+                  type="text"
+                  id="company"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
+                  className={styles.formInput}
+                  placeholder="Your company (optional)"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="subject" className={styles.formLabel}>
+                  Subject *
+                </label>
+                <select
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                  className={styles.formSelect}
+                >
+                  <option value="">Select a subject</option>
+                  <option value="new-project">New Project Inquiry</option>
+                  <option value="consultation">Consultation Request</option>
+                  <option value="partnership">Partnership Opportunity</option>
+                  <option value="careers">Careers</option>
+                  <option value="general">General Inquiry</option>
+                </select>
+              </div>
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="message" className={styles.formLabel}>
+                Message *
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                required
+                rows={6}
+                className={styles.formTextarea}
+                placeholder="Tell us about your project or inquiry..."
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={styles.submitButton}
+            >
+              {isSubmitting ? "Sending..." : "Send Message"}
+            </button>
+            {submitStatus === "success" && (
+              <p className={styles.successMessage}>
+                Thank you! Your message has been sent successfully. We'll get back to you soon.
+              </p>
+            )}
+            {submitStatus === "error" && (
+              <p className={styles.errorMessage}>
+                Something went wrong. Please try again or email us directly at connect@collectif.nyc
+              </p>
+            )}
+          </form>
         </div>
         
         <div className={styles.contactInfoSection}>
