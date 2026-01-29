@@ -4,6 +4,7 @@ import { lato } from "@/config/fonts";
 import "./globals.css";
 import { TopMenu } from "@/components/ui/top-menu/TopMenu";
 import { SideBar } from "@/components/ui/top-menu/SideBar";
+import { ClientScreensaverProvider } from "@/components/screensaver/ClientScreensaverProvider";
 
 export const metadata: Metadata = {
   title: "Collectif Engineering",
@@ -37,9 +38,11 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${lato.className}`}>
-        <TopMenu />
-        <SideBar />
-        {children}
+        <ClientScreensaverProvider>
+          <TopMenu />
+          <SideBar />
+          {children}
+        </ClientScreensaverProvider>
       </body>
     </html>
   );
