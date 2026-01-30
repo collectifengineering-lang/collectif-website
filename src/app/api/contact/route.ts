@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Send email via Resend
     const { data, error } = await resend.emails.send({
-      from: "Collectif Website <onboarding@resend.dev>",
+      from: "Collectif Website <noreply@collectif.nyc>",
       to: [toEmail],
       replyTo: body.email,
       subject: `Contact Form: ${subjectLabel}`,
