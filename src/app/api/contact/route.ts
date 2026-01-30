@@ -62,11 +62,16 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = new Resend(apiKey);
+    
+    // Use configured recipient email, or default to connect@collectif.nyc
+    // Note: When using onboarding@resend.dev as sender, you can only send to
+    // the email address associated with your Resend account until you verify a domain
+    const toEmail = process.env.CONTACT_EMAIL || "connect@collectif.nyc";
 
     // Send email via Resend
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: "Collectif Website <onboarding@resend.dev>",
-      to: ["connect@collectif.nyc"],
+      to: [toEmail],
       replyTo: body.email,
       subject: `Contact Form: ${subjectLabel}`,
       html: `
@@ -111,12 +116,15 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error("Resend error:", error);
+      console.error("Resend error:", JSON.stringify(error, null, 2));
+      console.error("Attempted to send to:", toEmail);
       return NextResponse.json(
-        { error: "Failed to send email. Please try again or contact us directly at connect@collectif.nyc" },
+        { error: `Failed to send email: ${error.message}. Please contact us directly at connect@collectif.nyc` },
         { status: 500 }
       );
     }
+    
+    console.log("Email sent successfully:", data?.id);
 
     return NextResponse.json(
       { message: "Message sent successfully" },

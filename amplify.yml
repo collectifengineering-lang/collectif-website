@@ -8,6 +8,7 @@ frontend:
       commands:
         # Write server-side environment variables to .env.production
         - echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env.production
+        - echo "CONTACT_EMAIL=$CONTACT_EMAIL" >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
