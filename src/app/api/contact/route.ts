@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = process.env.RESEND_API_KEY 
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-
 interface ContactFormData {
   name: string;
   email: string;
@@ -44,9 +40,12 @@ export async function POST(request: NextRequest) {
 
     const subjectLabel = subjectLabels[body.subject] || body.subject;
 
+    // Initialize Resend at runtime (not build time) to ensure env var is available
+    const apiKey = process.env.RESEND_API_KEY;
+    
     // Check if Resend is configured
-    if (!resend) {
-      console.error("RESEND_API_KEY is not configured");
+    if (!apiKey) {
+      console.error("RESEND_API_KEY is not configured. Env vars:", Object.keys(process.env).filter(k => k.includes('RESEND')));
       // Log the submission for now so messages aren't lost
       console.log("Contact form submission (email not sent - no API key):", {
         name: body.name,
@@ -61,6 +60,8 @@ export async function POST(request: NextRequest) {
         { status: 503 }
       );
     }
+
+    const resend = new Resend(apiKey);
 
     // Send email via Resend
     const { error } = await resend.emails.send({
