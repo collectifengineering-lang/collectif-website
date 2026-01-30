@@ -129,7 +129,7 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
   const colors = {
     ball: "#fcfcfc",
     ballGlow: "#f8d878",
-    playerPaddle: "#f85898",
+    playerPaddle: "#88D0BA",
     aiPaddle: "#6888fc",
     text: "#fcfcfc",
   };
