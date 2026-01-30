@@ -442,7 +442,12 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
       ctx.drawImage(backgroundImageRef.current, 0, 0, canvas.width, canvas.height);
       ctx.restore();
     } else {
-      ctx.fillStyle = "#1a1a2e";
+      // Gradient fallback when screen capture fails (Safari/Chrome mobile)
+      const gradient = ctx.createLinearGradient(0, uiBarHeight, 0, canvas.height - uiBarHeight);
+      gradient.addColorStop(0, "#1a1a2e");
+      gradient.addColorStop(0.5, "#2d2d44");
+      gradient.addColorStop(1, "#1a1a2e");
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, uiBarHeight, canvas.width, canvas.height - uiBarHeight * 2);
     }
     
@@ -725,22 +730,24 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
       state.useMouseControl = true;
     };
 
-    // Touch handlers for mobile
+    // Touch handlers for mobile (Safari compatible)
     let touchStartX = 0;
     let touchStartPaddleX = 0;
     let isTouchDragging = false;
     let touchStartTime = 0;
 
     const handleTouchStart = (e: TouchEvent) => {
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartPaddleX = gameStateRef.current.playerPaddleX;
-      touchStartTime = Date.now();
-      isTouchDragging = true;
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartPaddleX = gameStateRef.current.playerPaddleX;
+        touchStartTime = Date.now();
+        isTouchDragging = true;
+      }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isTouchDragging) return;
+      if (!isTouchDragging || e.touches.length === 0) return;
       e.preventDefault(); // Prevent scrolling
       
       const touch = e.touches[0];
@@ -756,13 +763,15 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      const touchDuration = Date.now() - touchStartTime;
-      const touch = e.changedTouches[0];
-      const deltaX = Math.abs(touch.clientX - touchStartX);
-      
-      // If it was a quick tap (not a drag), exit the game
-      if (touchDuration < 300 && deltaX < 20) {
-        onExit();
+      if (e.changedTouches.length > 0) {
+        const touchDuration = Date.now() - touchStartTime;
+        const touch = e.changedTouches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartX);
+        
+        // If it was a quick tap (not a drag), exit the game
+        if (touchDuration < 300 && deltaX < 20) {
+          onExit();
+        }
       }
       
       isTouchDragging = false;
@@ -771,9 +780,11 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
-    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
-    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
+    
+    // Use document for touch events for better Safari compatibility
+    document.addEventListener("touchstart", handleTouchStart, { passive: true });
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     animationRef.current = requestAnimationFrame(gameLoop);
 
@@ -782,9 +793,9 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("touchstart", handleTouchStart);
-      canvas.removeEventListener("touchmove", handleTouchMove);
-      canvas.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }

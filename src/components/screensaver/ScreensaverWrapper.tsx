@@ -25,11 +25,12 @@ export const ScreensaverWrapper = ({
       const canvas = await html2canvas(document.body, {
         scale: 0.5, // Lower scale for performance and pixelation effect
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false, // Changed to false for Safari compatibility
         backgroundColor: "#ffffff",
         logging: false,
-        imageTimeout: 0,
+        imageTimeout: 5000, // Add timeout
         removeContainer: true,
+        foreignObjectRendering: false, // Disable for Safari compatibility
       });
       
       return canvas.toDataURL("image/jpeg", 0.8);
@@ -42,11 +43,23 @@ export const ScreensaverWrapper = ({
   const startScreensaver = useCallback(async () => {
     setIsCapturing(true);
     
-    // Capture the current screen
-    const image = await captureScreen();
-    setBackgroundImage(image);
+    // Try to capture the current screen, but don't block if it fails
+    let image: string | null = null;
+    try {
+      // Add a timeout for the capture in case it hangs
+      const capturePromise = captureScreen();
+      const timeoutPromise = new Promise<null>((resolve) => 
+        setTimeout(() => resolve(null), 3000)
+      );
+      image = await Promise.race([capturePromise, timeoutPromise]);
+    } catch (error) {
+      console.error("Screen capture failed:", error);
+    }
     
+    setBackgroundImage(image);
     setIsCapturing(false);
+    
+    // Always show the screensaver, even without background image
     setShowScreensaver(true);
   }, [captureScreen]);
 
