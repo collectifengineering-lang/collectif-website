@@ -77,20 +77,36 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
     "#9400d3", // Violet
   ];
   
+  // Ball interface for multi-ball support
+  interface Ball {
+    x: number;
+    y: number;
+    speedX: number;
+    speedY: number;
+    radius: number;
+    age: number; // frames since spawn
+    isSuper: boolean; // becomes super after 1 minute
+  }
+  
+  // Power-up interface
+  interface PowerUp {
+    x: number;
+    y: number;
+    type: 'multiball' | 'bigPaddle' | 'slowMotion' | 'fireball';
+    size: number;
+    age: number;
+  }
+  
+  const ballsRef = useRef<Ball[]>([]);
+  const powerUpsRef = useRef<PowerUp[]>([]);
+  
   const gameStateRef = useRef({
-    // Ball
-    ballX: 0,
-    ballY: 0,
-    ballSpeedX: 4,
-    ballSpeedY: 4,
-    ballRadius: 8,
-    
     // Paddles - THICKER
     paddleWidth: 100,
-    paddleHeight: 16, // Thicker paddles
+    paddleHeight: 16,
     playerPaddleX: 0,
     aiPaddleX: 0,
-    paddleSpeed: 6,
+    paddleSpeed: 12, // Faster keyboard speed!
     
     // Scores
     playerScore: 0,
@@ -101,6 +117,10 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
     rightPressed: false,
     mouseX: 0,
     useMouseControl: false,
+    
+    // Game timing
+    gameStartTime: 0,
+    lastPowerUpSpawn: 0,
     
     initialized: false,
   });
@@ -150,95 +170,186 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
 
   const initGame = useCallback((canvas: HTMLCanvasElement) => {
     const state = gameStateRef.current;
-    state.ballX = canvas.width / 2;
-    state.ballY = canvas.height / 2;
     state.playerPaddleX = (canvas.width - state.paddleWidth) / 2;
     state.aiPaddleX = (canvas.width - state.paddleWidth) / 2;
+    state.gameStartTime = Date.now();
+    state.lastPowerUpSpawn = Date.now();
     
-    state.ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * 4;
-    state.ballSpeedY = (Math.random() > 0.5 ? 1 : -1) * 4;
+    // Initialize with one ball
+    ballsRef.current = [{
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      speedX: (Math.random() > 0.5 ? 1 : -1) * 4,
+      speedY: (Math.random() > 0.5 ? 1 : -1) * 4,
+      radius: 8,
+      age: 0,
+      isSuper: false,
+    }];
+    
+    // Reset power-ups
+    powerUpsRef.current = [];
     
     // Reset pixel blocks, broken tiles, and trail
     pixelBlocksRef.current = [];
     brokenTilesRef.current = [];
     trailRef.current = [];
   }, []);
-
-  const resetBall = useCallback((canvas: HTMLCanvasElement) => {
-    const state = gameStateRef.current;
-    state.ballX = canvas.width / 2;
-    state.ballY = canvas.height / 2;
-    state.ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * 4;
-    state.ballSpeedY = (Math.random() > 0.5 ? 1 : -1) * 4;
+  
+  // Spawn a new ball
+  const spawnBall = useCallback((canvas: HTMLCanvasElement, fromX?: number, fromY?: number) => {
+    const x = fromX ?? canvas.width / 2;
+    const y = fromY ?? canvas.height / 2;
+    
+    ballsRef.current.push({
+      x,
+      y,
+      speedX: (Math.random() > 0.5 ? 1 : -1) * (4 + Math.random() * 2),
+      speedY: (Math.random() > 0.5 ? 1 : -1) * (4 + Math.random() * 2),
+      radius: 8,
+      age: 0,
+      isSuper: false,
+    });
+  }, []);
+  
+  // Spawn a power-up
+  const spawnPowerUp = useCallback((canvas: HTMLCanvasElement) => {
+    const topBoundary = 100;
+    const bottomBoundary = canvas.height - 100;
+    const playAreaHeight = bottomBoundary - topBoundary;
+    
+    const types: PowerUp['type'][] = ['multiball', 'multiball', 'multiball', 'bigPaddle', 'fireball'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    powerUpsRef.current.push({
+      x: 100 + Math.random() * (canvas.width - 200),
+      y: topBoundary + 100 + Math.random() * (playAreaHeight - 200),
+      type,
+      size: 30,
+      age: 0,
+    });
   }, []);
 
-  // Create chemtrail behind the ball - paints permanent rainbow pixels like a real rainbow
+  const resetBall = useCallback((canvas: HTMLCanvasElement, ballIndex: number) => {
+    // If this was the last ball, spawn a new one in the center
+    if (ballsRef.current.length <= 1) {
+      ballsRef.current = [{
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        speedX: (Math.random() > 0.5 ? 1 : -1) * 4,
+        speedY: (Math.random() > 0.5 ? 1 : -1) * 4,
+        radius: 8,
+        age: 0,
+        isSuper: false,
+      }];
+    } else {
+      // Remove this ball
+      ballsRef.current.splice(ballIndex, 1);
+    }
+  }, []);
+  
+  // Create AI paddle explosion
+  const explodeAIPaddle = useCallback((hitX: number, hitY: number) => {
+    const hotPinkColors = ["#ff1493", "#ff69b4", "#ff007f", "#e62883", "#ff0080"];
+    
+    // Massive explosion
+    for (let i = 0; i < 50; i++) {
+      const angle = (i / 50) * Math.PI * 2 + Math.random() * 0.5;
+      const speed = 10 + Math.random() * 15;
+      const pinkColor = hotPinkColors[Math.floor(Math.random() * hotPinkColors.length)];
+      
+      particlesRef.current.push({
+        x: hitX,
+        y: hitY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: PIXEL_SIZE * (0.5 + Math.random() * 1),
+        color: pinkColor,
+        alpha: 1,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.8,
+      });
+    }
+    
+    // Add fire/yellow particles too
+    for (let i = 0; i < 30; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 5 + Math.random() * 20;
+      const fireColors = ["#ff0000", "#ff6600", "#ffff00", "#ffffff"];
+      
+      particlesRef.current.push({
+        x: hitX,
+        y: hitY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: PIXEL_SIZE * (0.3 + Math.random() * 0.8),
+        color: fireColors[Math.floor(Math.random() * fireColors.length)],
+        alpha: 1,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.5,
+      });
+    }
+  }, []);
+
+  // Create chemtrail behind all balls - paints permanent rainbow pixels
   const createChemtrail = useCallback(() => {
-    const state = gameStateRef.current;
     const pixelData = pixelDataRef.current;
     const canvas = canvasRef.current;
     if (!pixelData || !canvas) return;
     
-    // Play area boundaries
     const topBoundary = 100;
     const bottomBoundary = canvas.height - 100;
     
-    const ballGridX = Math.floor(state.ballX / PIXEL_SIZE);
-    const ballGridY = Math.floor(state.ballY / PIXEL_SIZE);
-    
-    // Get ball's movement direction
-    const speed = Math.sqrt(state.ballSpeedX * state.ballSpeedX + state.ballSpeedY * state.ballSpeedY);
-    if (speed === 0) return;
-    
-    // Perpendicular direction (for rainbow stripes across the trail)
-    const perpX = -state.ballSpeedY / speed;
-    const perpY = state.ballSpeedX / speed;
-    
-    // Paint rainbow stripes perpendicular to movement direction
-    const trailWidth = 3; // Number of rainbow stripes on each side
-    
-    for (let stripe = -trailWidth; stripe <= trailWidth; stripe++) {
-      // Position along the perpendicular axis
-      const offsetX = Math.round(perpX * stripe);
-      const offsetY = Math.round(perpY * stripe);
+    // Create trail for each ball
+    ballsRef.current.forEach((ball) => {
+      const ballGridX = Math.floor(ball.x / PIXEL_SIZE);
+      const ballGridY = Math.floor(ball.y / PIXEL_SIZE);
       
-      const gx = ballGridX + offsetX;
-      const gy = ballGridY + offsetY;
+      const speed = Math.sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY);
+      if (speed === 0) return;
       
-      // Check bounds - must be within play area
-      if (gx < 0 || gx >= pixelData.width || gy < 0 || gy >= pixelData.height) continue;
+      const perpX = -ball.speedY / speed;
+      const perpY = ball.speedX / speed;
       
-      // Check if within play area (not in black bars)
-      const pixelY = gy * PIXEL_SIZE;
-      if (pixelY < topBoundary || pixelY > bottomBoundary - PIXEL_SIZE) continue;
+      // Trail width increases with ball speed
+      const trailWidth = Math.min(5, Math.floor(speed / 4));
       
-      // Check if pixel already exists at this location
-      const existingBlock = pixelBlocksRef.current.find(
-        b => b.x === gx * PIXEL_SIZE && b.y === gy * PIXEL_SIZE && !b.falling
-      );
-      
-      if (!existingBlock) {
-        // Map stripe position to rainbow color (centered)
-        // stripe goes from -3 to 3, map to 0-6 for 7 rainbow colors
-        const colorIndex = stripe + trailWidth; // Now 0 to 6
-        const rainbowColor = RAINBOW_COLORS[colorIndex % RAINBOW_COLORS.length];
+      for (let stripe = -trailWidth; stripe <= trailWidth; stripe++) {
+        const offsetX = Math.round(perpX * stripe);
+        const offsetY = Math.round(perpY * stripe);
         
-        pixelBlocksRef.current.push({
-          x: gx * PIXEL_SIZE,
-          y: gy * PIXEL_SIZE,
-          width: PIXEL_SIZE,
-          height: PIXEL_SIZE,
-          color: rainbowColor,
-          visible: true,
-          falling: false,
-          vy: 0,
-          vx: 0,
-          rotation: 0,
-          rotationSpeed: 0,
-          alpha: 1,
-        });
+        const gx = ballGridX + offsetX;
+        const gy = ballGridY + offsetY;
+        
+        if (gx < 0 || gx >= pixelData.width || gy < 0 || gy >= pixelData.height) continue;
+        
+        const pixelY = gy * PIXEL_SIZE;
+        if (pixelY < topBoundary || pixelY > bottomBoundary - PIXEL_SIZE) continue;
+        
+        const existingBlock = pixelBlocksRef.current.find(
+          b => b.x === gx * PIXEL_SIZE && b.y === gy * PIXEL_SIZE && !b.falling
+        );
+        
+        if (!existingBlock) {
+          const colorIndex = (stripe + trailWidth) % RAINBOW_COLORS.length;
+          const rainbowColor = RAINBOW_COLORS[colorIndex];
+          
+          pixelBlocksRef.current.push({
+            x: gx * PIXEL_SIZE,
+            y: gy * PIXEL_SIZE,
+            width: PIXEL_SIZE,
+            height: PIXEL_SIZE,
+            color: rainbowColor,
+            visible: true,
+            falling: false,
+            vy: 0,
+            vx: 0,
+            rotation: 0,
+            rotationSpeed: 0,
+            alpha: 1,
+          });
+        }
       }
-    }
+    });
   }, [RAINBOW_COLORS]);
 
   // Trigger destruction at edges - EXTREME explosions
@@ -486,8 +597,55 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
     });
     ctx.globalAlpha = 1;
     
-    // Draw fireball
-    drawFireball(ctx, state.ballX, state.ballY, state.ballRadius);
+    // Draw power-ups
+    powerUpsRef.current.forEach((powerUp) => {
+      const pulseSize = powerUp.size + Math.sin(powerUp.age * 0.1) * 5;
+      
+      // Glow effect
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = powerUp.type === 'multiball' ? '#00ff00' : 
+                      powerUp.type === 'bigPaddle' ? '#00ffff' :
+                      powerUp.type === 'fireball' ? '#ff6600' : '#ffff00';
+      ctx.beginPath();
+      ctx.arc(powerUp.x, powerUp.y, pulseSize + 10, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Main circle
+      ctx.globalAlpha = 0.8;
+      ctx.fillStyle = powerUp.type === 'multiball' ? '#00ff00' : 
+                      powerUp.type === 'bigPaddle' ? '#00ffff' :
+                      powerUp.type === 'fireball' ? '#ff6600' : '#ffff00';
+      ctx.beginPath();
+      ctx.arc(powerUp.x, powerUp.y, pulseSize, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Icon
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const icon = powerUp.type === 'multiball' ? '+3' : 
+                   powerUp.type === 'bigPaddle' ? '⬛' :
+                   powerUp.type === 'fireball' ? '🔥' : '?';
+      ctx.fillText(icon, powerUp.x, powerUp.y);
+    });
+    ctx.globalAlpha = 1;
+    
+    // Draw all fireballs
+    ballsRef.current.forEach((ball) => {
+      // Draw super indicator if ball is super fast
+      if (ball.isSuper) {
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius * 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      drawFireball(ctx, ball.x, ball.y, ball.radius);
+    });
     
     // Draw player paddle (bottom) - moved up into play area
     const playerPaddleY = canvas.height - 130;
@@ -542,73 +700,164 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
 
   const updateGame = useCallback((canvas: HTMLCanvasElement) => {
     const state = gameStateRef.current;
-    
-    // Update ball position
-    state.ballX += state.ballSpeedX;
-    state.ballY += state.ballSpeedY;
-    
-    // Create chemtrail behind the ball
-    createChemtrail();
-    
-    // Ball collision with left wall
-    if (state.ballX - state.ballRadius < 0) {
-      state.ballSpeedX = -state.ballSpeedX;
-      state.ballX = state.ballRadius;
-      triggerDestruction(0, state.ballY, "left");
-    }
-    
-    // Ball collision with right wall
-    if (state.ballX + state.ballRadius > canvas.width) {
-      state.ballSpeedX = -state.ballSpeedX;
-      state.ballX = canvas.width - state.ballRadius;
-      triggerDestruction(canvas.width, state.ballY, "right");
-    }
-    
-    // Ball collision with player paddle (bottom) - updated position
-    const playerPaddleY = canvas.height - 130;
-    if (
-      state.ballY + state.ballRadius > playerPaddleY &&
-      state.ballY - state.ballRadius < playerPaddleY + state.paddleHeight &&
-      state.ballX > state.playerPaddleX &&
-      state.ballX < state.playerPaddleX + state.paddleWidth
-    ) {
-      state.ballSpeedY = -Math.abs(state.ballSpeedY) - 0.2;
-      const hitPos = (state.ballX - state.playerPaddleX) / state.paddleWidth;
-      state.ballSpeedX = (hitPos - 0.5) * 8;
-    }
-    
-    // Ball collision with AI paddle (top) - updated position
-    const aiPaddleY = 115;
-    if (
-      state.ballY - state.ballRadius < aiPaddleY + state.paddleHeight &&
-      state.ballY + state.ballRadius > aiPaddleY &&
-      state.ballX > state.aiPaddleX &&
-      state.ballX < state.aiPaddleX + state.paddleWidth
-    ) {
-      state.ballSpeedY = Math.abs(state.ballSpeedY) + 0.2;
-      const hitPos = (state.ballX - state.aiPaddleX) / state.paddleWidth;
-      state.ballSpeedX = (hitPos - 0.5) * 8;
-    }
-    
-    // Ball boundaries are at the black bars (100px from edges)
     const topBoundary = 100;
     const bottomBoundary = canvas.height - 100;
+    const playerPaddleY = canvas.height - 130;
+    const aiPaddleY = 115;
     
-    // Score - ball goes past bottom (into black bar)
-    if (state.ballY > bottomBoundary + state.ballRadius) {
-      state.aiScore++;
-      triggerDestruction(state.ballX, bottomBoundary, "bottom");
-      resetBall(canvas);
+    // Spawn power-ups periodically (every 5-10 seconds)
+    const now = Date.now();
+    if (now - state.lastPowerUpSpawn > 5000 + Math.random() * 5000 && powerUpsRef.current.length < 3) {
+      spawnPowerUp(canvas);
+      state.lastPowerUpSpawn = now;
     }
     
-    // Score - ball goes past top (into black bar)
-    if (state.ballY < topBoundary - state.ballRadius) {
-      state.playerScore++;
-      triggerDestruction(state.ballX, topBoundary, "top");
-      resetBall(canvas);
+    // Update power-ups
+    powerUpsRef.current.forEach(p => p.age++);
+    powerUpsRef.current = powerUpsRef.current.filter(p => p.age < 600); // Remove after 10 seconds
+    
+    // Ball speed increase rate (over 60 seconds, speed doubles)
+    const SUPER_BALL_AGE = 60 * 60; // 60 seconds at 60fps = 3600 frames
+    const MAX_SPEED = 20;
+    
+    // Track balls to remove
+    const ballsToRemove: number[] = [];
+    
+    // Update all balls
+    ballsRef.current.forEach((ball, ballIndex) => {
+      // Increase ball age
+      ball.age++;
+      
+      // Speed up ball over time (gradual increase over 1 minute)
+      const ageRatio = Math.min(1, ball.age / SUPER_BALL_AGE);
+      const speedMultiplier = 1 + ageRatio * 1.5; // Up to 2.5x speed
+      
+      // Mark as super if old enough
+      if (ball.age >= SUPER_BALL_AGE && !ball.isSuper) {
+        ball.isSuper = true;
+      }
+      
+      // Apply speed with age multiplier
+      const currentSpeedX = ball.speedX * speedMultiplier;
+      const currentSpeedY = ball.speedY * speedMultiplier;
+      
+      ball.x += ball.speedX;
+      ball.y += ball.speedY;
+      
+      // Gradually increase base speed
+      if (ball.age % 60 === 0) { // Every second
+        const speedIncrease = 0.05;
+        ball.speedX += ball.speedX > 0 ? speedIncrease : -speedIncrease;
+        ball.speedY += ball.speedY > 0 ? speedIncrease : -speedIncrease;
+      }
+      
+      // Ball collision with left wall
+      if (ball.x - ball.radius < 0) {
+        ball.speedX = Math.abs(ball.speedX);
+        ball.x = ball.radius;
+        triggerDestruction(0, ball.y, "left");
+      }
+      
+      // Ball collision with right wall
+      if (ball.x + ball.radius > canvas.width) {
+        ball.speedX = -Math.abs(ball.speedX);
+        ball.x = canvas.width - ball.radius;
+        triggerDestruction(canvas.width, ball.y, "right");
+      }
+      
+      // Ball collision with player paddle (bottom)
+      if (
+        ball.y + ball.radius > playerPaddleY &&
+        ball.y - ball.radius < playerPaddleY + state.paddleHeight &&
+        ball.x > state.playerPaddleX &&
+        ball.x < state.playerPaddleX + state.paddleWidth
+      ) {
+        ball.speedY = -Math.abs(ball.speedY) - 0.3;
+        const hitPos = (ball.x - state.playerPaddleX) / state.paddleWidth;
+        ball.speedX = (hitPos - 0.5) * 10;
+        ball.y = playerPaddleY - ball.radius;
+      }
+      
+      // Ball collision with AI paddle (top)
+      if (
+        ball.y - ball.radius < aiPaddleY + state.paddleHeight &&
+        ball.y + ball.radius > aiPaddleY &&
+        ball.x > state.aiPaddleX &&
+        ball.x < state.aiPaddleX + state.paddleWidth
+      ) {
+        // If super ball hits AI paddle, EXPLODE and give player a point!
+        if (ball.isSuper) {
+          state.playerScore++;
+          explodeAIPaddle(ball.x, aiPaddleY + state.paddleHeight / 2);
+          triggerDestruction(ball.x, aiPaddleY, "top");
+          ballsToRemove.push(ballIndex);
+          
+          // Spawn a new normal ball
+          if (ballsRef.current.length <= 1) {
+            setTimeout(() => spawnBall(canvas), 500);
+          }
+        } else {
+          ball.speedY = Math.abs(ball.speedY) + 0.3;
+          const hitPos = (ball.x - state.aiPaddleX) / state.paddleWidth;
+          ball.speedX = (hitPos - 0.5) * 10;
+          ball.y = aiPaddleY + state.paddleHeight + ball.radius;
+        }
+      }
+      
+      // Check power-up collisions
+      powerUpsRef.current = powerUpsRef.current.filter((powerUp) => {
+        const dist = Math.sqrt(Math.pow(ball.x - powerUp.x, 2) + Math.pow(ball.y - powerUp.y, 2));
+        if (dist < ball.radius + powerUp.size) {
+          // Collected power-up!
+          if (powerUp.type === 'multiball') {
+            // Spawn 2 extra balls
+            spawnBall(canvas, ball.x, ball.y);
+            spawnBall(canvas, ball.x, ball.y);
+          } else if (powerUp.type === 'bigPaddle') {
+            state.paddleWidth = Math.min(200, state.paddleWidth + 30);
+          } else if (powerUp.type === 'fireball') {
+            // Make current ball super immediately
+            ball.isSuper = true;
+            ball.age = SUPER_BALL_AGE;
+          }
+          return false; // Remove power-up
+        }
+        return true;
+      });
+      
+      // Score - ball goes past bottom
+      if (ball.y > bottomBoundary + ball.radius) {
+        state.aiScore++;
+        triggerDestruction(ball.x, bottomBoundary, "bottom");
+        ballsToRemove.push(ballIndex);
+      }
+      
+      // Score - ball goes past top
+      if (ball.y < topBoundary - ball.radius) {
+        state.playerScore++;
+        triggerDestruction(ball.x, topBoundary, "top");
+        ballsToRemove.push(ballIndex);
+      }
+      
+      // Limit ball speed
+      ball.speedX = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, ball.speedX));
+      ball.speedY = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, ball.speedY));
+    });
+    
+    // Remove balls that scored
+    ballsToRemove.sort((a, b) => b - a).forEach(index => {
+      ballsRef.current.splice(index, 1);
+    });
+    
+    // Ensure at least one ball exists
+    if (ballsRef.current.length === 0) {
+      spawnBall(canvas);
     }
     
-    // Player paddle movement (keyboard)
+    // Create chemtrail
+    createChemtrail();
+    
+    // Player paddle movement (keyboard) - FASTER
     if (state.leftPressed) {
       state.playerPaddleX = Math.max(0, state.playerPaddleX - state.paddleSpeed);
     }
@@ -622,36 +871,42 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
       state.playerPaddleX = Math.max(0, Math.min(canvas.width - state.paddleWidth, targetX));
     }
     
-    // AI paddle movement
-    const aiTargetX = state.ballX - state.paddleWidth / 2;
-    const aiSpeed = 3.5;
-    if (state.aiPaddleX < aiTargetX) {
-      state.aiPaddleX = Math.min(state.aiPaddleX + aiSpeed, aiTargetX);
-    } else if (state.aiPaddleX > aiTargetX) {
-      state.aiPaddleX = Math.max(state.aiPaddleX - aiSpeed, aiTargetX);
+    // AI paddle movement - track closest ball
+    const closestBall = ballsRef.current.reduce((closest, ball) => {
+      if (!closest) return ball;
+      // Prioritize balls heading towards AI (negative speedY)
+      if (ball.speedY < 0 && closest.speedY >= 0) return ball;
+      if (ball.speedY >= 0 && closest.speedY < 0) return closest;
+      // Then pick closest to AI paddle
+      return ball.y < closest.y ? ball : closest;
+    }, ballsRef.current[0]);
+    
+    if (closestBall) {
+      const aiTargetX = closestBall.x - state.paddleWidth / 2;
+      const aiSpeed = 4;
+      if (state.aiPaddleX < aiTargetX) {
+        state.aiPaddleX = Math.min(state.aiPaddleX + aiSpeed, aiTargetX);
+      } else if (state.aiPaddleX > aiTargetX) {
+        state.aiPaddleX = Math.max(state.aiPaddleX - aiSpeed, aiTargetX);
+      }
     }
     state.aiPaddleX = Math.max(0, Math.min(canvas.width - state.paddleWidth, state.aiPaddleX));
     
-    // Limit ball speed
-    const maxSpeed = 12;
-    state.ballSpeedX = Math.max(-maxSpeed, Math.min(maxSpeed, state.ballSpeedX));
-    state.ballSpeedY = Math.max(-maxSpeed, Math.min(maxSpeed, state.ballSpeedY));
-    
-    // Remove non-visible blocks (ones that became permanent black tiles)
+    // Remove non-visible blocks
     pixelBlocksRef.current = pixelBlocksRef.current.filter((block) => block.visible);
     
-    // Update particles - dramatic physics
+    // Update particles
     particlesRef.current.forEach((particle) => {
       particle.x += particle.vx;
       particle.y += particle.vy;
-      particle.vy += 0.25; // Stronger gravity
-      particle.vx *= 0.99; // Slight air resistance
-      particle.alpha -= 0.015; // Slower fade for longer trails
+      particle.vy += 0.25;
+      particle.vx *= 0.99;
+      particle.alpha -= 0.015;
       particle.rotation += particle.rotationSpeed;
     });
     
     particlesRef.current = particlesRef.current.filter((p) => p.alpha > 0 && p.y < canvas.height + 100);
-  }, [resetBall, triggerDestruction, createChemtrail]);
+  }, [resetBall, triggerDestruction, createChemtrail, spawnBall, spawnPowerUp, explodeAIPaddle]);
 
   const gameLoop = useCallback(() => {
     const canvas = canvasRef.current;
