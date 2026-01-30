@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY 
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 interface ContactFormData {
   name: string;
@@ -42,9 +44,27 @@ export async function POST(request: NextRequest) {
 
     const subjectLabel = subjectLabels[body.subject] || body.subject;
 
+    // Check if Resend is configured
+    if (!resend) {
+      console.error("RESEND_API_KEY is not configured");
+      // Log the submission for now so messages aren't lost
+      console.log("Contact form submission (email not sent - no API key):", {
+        name: body.name,
+        email: body.email,
+        company: body.company || "N/A",
+        subject: subjectLabel,
+        message: body.message,
+        timestamp: new Date().toISOString(),
+      });
+      return NextResponse.json(
+        { error: "Email service not configured. Please contact us directly at connect@collectif.nyc" },
+        { status: 503 }
+      );
+    }
+
     // Send email via Resend
     const { error } = await resend.emails.send({
-      from: "Collectif Website <noreply@collectif.nyc>",
+      from: "Collectif Website <onboarding@resend.dev>",
       to: ["connect@collectif.nyc"],
       replyTo: body.email,
       subject: `Contact Form: ${subjectLabel}`,
@@ -92,7 +112,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Resend error:", error);
       return NextResponse.json(
-        { error: "Failed to send email" },
+        { error: "Failed to send email. Please try again or contact us directly at connect@collectif.nyc" },
         { status: 500 }
       );
     }
