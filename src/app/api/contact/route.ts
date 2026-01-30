@@ -124,7 +124,66 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log("Email sent successfully:", data?.id);
+    console.log("Internal notification sent:", data?.id);
+
+    // Send confirmation email to the person who submitted the form
+    const { error: confirmationError } = await resend.emails.send({
+      from: "Collectif <noreply@collectif.nyc>",
+      to: [body.email],
+      subject: "We've received your message - Collectif",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="text-align: center; padding: 30px 0; border-bottom: 2px solid #e91e8c;">
+            <h1 style="margin: 0; color: #333; font-size: 24px;">COLLECTIF</h1>
+          </div>
+          
+          <div style="padding: 40px 20px;">
+            <p style="font-size: 18px; margin-bottom: 20px;">Hi ${body.name},</p>
+            
+            <p style="line-height: 1.8; margin-bottom: 20px;">
+              Thank you for reaching out to Collectif. We've received your message and appreciate 
+              you taking the time to contact us.
+            </p>
+            
+            <p style="line-height: 1.8; margin-bottom: 20px;">
+              Our team will review your inquiry and get back to you as soon as possible, 
+              typically within 1-2 business days.
+            </p>
+            
+            <div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 30px 0;">
+              <p style="margin: 0 0 10px 0; font-weight: bold; color: #666;">Your message:</p>
+              <p style="margin: 0; color: #555; font-style: italic; line-height: 1.6;">
+                "${body.message.length > 200 ? body.message.substring(0, 200) + '...' : body.message}"
+              </p>
+            </div>
+            
+            <p style="line-height: 1.8;">
+              In the meantime, feel free to explore our work at 
+              <a href="https://collectifengineering.com" style="color: #e91e8c;">collectifengineering.com</a>
+            </p>
+          </div>
+          
+          <div style="border-top: 1px solid #eee; padding: 30px 20px; text-align: center; color: #999; font-size: 14px;">
+            <p style="margin: 0 0 10px 0;">
+              <strong style="color: #333;">Collectif Engineering</strong>
+            </p>
+            <p style="margin: 0 0 5px 0;">New York | San Juan | Miami | New Jersey</p>
+            <p style="margin: 0;">
+              <a href="mailto:connect@collectif.nyc" style="color: #e91e8c; text-decoration: none;">connect@collectif.nyc</a>
+              &nbsp;|&nbsp;
+              <a href="tel:+16466100343" style="color: #e91e8c; text-decoration: none;">+1 646.610.0343</a>
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (confirmationError) {
+      // Log but don't fail - the main message was sent successfully
+      console.error("Failed to send confirmation email:", confirmationError);
+    } else {
+      console.log("Confirmation email sent to:", body.email);
+    }
 
     return NextResponse.json(
       { message: "Message sent successfully" },
