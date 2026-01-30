@@ -127,7 +127,8 @@ export async function POST(request: NextRequest) {
     console.log("Internal notification sent:", data?.id);
 
     // Send confirmation email to the person who submitted the form
-    const { error: confirmationError } = await resend.emails.send({
+    console.log("Attempting to send confirmation email to:", body.email);
+    const { data: confirmationData, error: confirmationError } = await resend.emails.send({
       from: "Collectif <noreply@collectif.nyc>",
       to: [body.email],
       subject: "We've received your message - Collectif",
@@ -180,13 +181,18 @@ export async function POST(request: NextRequest) {
 
     if (confirmationError) {
       // Log but don't fail - the main message was sent successfully
-      console.error("Failed to send confirmation email:", confirmationError);
+      console.error("Failed to send confirmation email:", JSON.stringify(confirmationError, null, 2));
+      console.error("Confirmation was attempted to:", body.email);
     } else {
-      console.log("Confirmation email sent to:", body.email);
+      console.log("Confirmation email sent successfully:", confirmationData?.id, "to:", body.email);
     }
 
     return NextResponse.json(
-      { message: "Message sent successfully" },
+      { 
+        message: "Message sent successfully",
+        confirmationSent: !confirmationError,
+        confirmationId: confirmationData?.id || null
+      },
       { status: 200 }
     );
   } catch (error) {
