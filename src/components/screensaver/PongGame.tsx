@@ -365,7 +365,11 @@ export const PongGame = ({ onExit, backgroundImage }: PongGameProps) => {
     
     // Bigger destruction radius that varies
     const baseDestructionRadius = 200;
-    const speedMultiplier = Math.sqrt(state.ballSpeedX * state.ballSpeedX + state.ballSpeedY * state.ballSpeedY);
+    // Get speed from first ball if available
+    const firstBall = ballsRef.current[0];
+    const speedMultiplier = firstBall 
+      ? Math.sqrt(firstBall.speedX * firstBall.speedX + firstBall.speedY * firstBall.speedY)
+      : 5;
     const destructionRadius = baseDestructionRadius + speedMultiplier * 15 + Math.random() * 100;
     
     blocks.forEach((block) => {
