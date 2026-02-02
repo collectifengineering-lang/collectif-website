@@ -63,6 +63,7 @@ export const TopMenu = () => {
                 <Link className={`${roboto.className} ${styles.textLink}`} href="/studio">Studio</Link>
                 <Link className={`${roboto.className} ${styles.textLink}`} href="/work">Work</Link>
                 <Link className={`${roboto.className} ${styles.textLink}`} href="/culture">Culture</Link>
+                <Link className={`${roboto.className} ${styles.textLink}`} href="/social">Social</Link>
                 <Link className={`${roboto.className} ${styles.textLink}`} href="/contact">Contact</Link>
               </div>
             </div>
