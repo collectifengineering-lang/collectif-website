@@ -70,6 +70,26 @@ export const portfolioData: SeedData = {
             ]
         },
         {
+            id: 36,
+            title: "Lore",
+            client: "",
+            description: "COLLECTIF designed the MEP systems for a premium wellness location, supporting exceptional comfort and energy performance. ",
+            category: "Wellness",
+            photoCredit: "Sean Davidson / Lore Bathing Club",
+            architect: "Interior Design: Ringo Studio",
+            location: "New York, NY",
+            article: "",
+            images:
+            [
+                "seandavidson_lore_1.jpg",
+                "seandavidson_lore_7.jpg",
+                "seandavidson_lore_11.jpg",
+                "seandavidson_lore_12.jpg",
+                "seandavidson_lore_15.jpg",
+                "seandavidson_lore_17.jpg",
+            ]
+        },
+        {
             id: 4,
             title: "Élan Artists",
             client: "Élan Artists",
@@ -324,26 +344,6 @@ export const portfolioData: SeedData = {
                 "greenwich-4.jpg",
                 "greenwich-5.jpg",
                 "greenwich-6.jpg",
-            ]
-        },
-        {
-            id: 36,
-            title: "Lore",
-            client: "",
-            description: "COLLECTIF designed the MEP systems for a premium wellness location, supporting exceptional comfort and energy performance. ",
-            category: "Wellness",
-            photoCredit: "Sean Davidson / Lore Bathing Club",
-            architect: "Interior Design: Ringo Studio",
-            location: "New York, NY",
-            article: "",
-            images:
-            [
-                "seandavidson_lore_1.jpg",
-                "seandavidson_lore_7.jpg",
-                "seandavidson_lore_11.jpg",
-                "seandavidson_lore_12.jpg",
-                "seandavidson_lore_15.jpg",
-                "seandavidson_lore_17.jpg",
             ]
         },
         {
