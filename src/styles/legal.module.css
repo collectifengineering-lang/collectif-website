@@ -1,0 +1,57 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 120px 24px 60px;
+  color: var(--color-text);
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-collectif-violet);
+}
+
+.lastUpdated {
+  font-size: 0.9rem;
+  color: var(--color-secondary-text);
+  margin-bottom: 48px;
+}
+
+.section {
+  margin-bottom: 36px;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.text {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--color-secondary-text);
+  margin: 0 0 12px;
+}
+
+.text a {
+  color: var(--color-collectif-pink);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.text a:hover {
+  color: var(--color-collectif-violet);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 100px 16px 40px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+}

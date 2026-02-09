@@ -1,3 +1,5 @@
+import Footer from '@/components/footer/Footer'
+
 export default function CollectifLayout({children}: {
     children: React.ReactNode
 }) {
@@ -6,6 +8,7 @@ export default function CollectifLayout({children}: {
             <div>
                 {children}
             </div>
+            <Footer />
         </main>
     );
 }

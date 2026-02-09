@@ -43,6 +43,11 @@ const Footer = () => {
             Instagram
           </a>
         </div>
+        <div className={styles.footerLegal}>
+          <Link href="/privacy-policy" className={styles.legalLink}>Privacy Policy</Link>
+          <span className={styles.separator}>|</span>
+          <Link href="/terms-of-service" className={styles.legalLink}>Terms of Service</Link>
+        </div>
         <div className={styles.footerCopyright}>
           <p>Copyright © {year} COLLECTIF Engineering PLLC</p>
         </div>
