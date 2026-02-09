@@ -327,6 +327,26 @@ export const portfolioData: SeedData = {
             ]
         },
         {
+            id: 36,
+            title: "Lore",
+            client: "",
+            description: "COLLECTIF designed the MEP systems for a premium wellness location, supporting exceptional comfort and energy performance. ",
+            category: "Wellness",
+            photoCredit: "Sean Davidson / Lore Bathing Club",
+            architect: "Interior Design: Ringo Studio",
+            location: "New York, NY",
+            article: "",
+            images:
+            [
+                "seandavidson_lore_1.jpg",
+                "seandavidson_lore_7.jpg",
+                "seandavidson_lore_11.jpg",
+                "seandavidson_lore_12.jpg",
+                "seandavidson_lore_15.jpg",
+                "seandavidson_lore_17.jpg",
+            ]
+        },
+        {
             id: 17,
             title: "Trinity Apartments Multi-Family Residential",
             client: "Trinity Housing",
@@ -547,26 +567,6 @@ export const portfolioData: SeedData = {
                 "skinnyside-2.jpg",
                 "skinnyside-3.jpg",
                 "skinnyside-4.jpg",
-            ]
-        },
-        {
-            id: 36,
-            title: "Lore",
-            client: "",
-            description: "COLLECTIF designed the MEP systems for a premium wellness location, supporting exceptional comfort and energy performance. ",
-            category: "Wellness",
-            photoCredit: "Sean Davidson / Lore Bathing Club",
-            architect: "Interior Design: Ringo Studio",
-            location: "New York, NY",
-            article: "",
-            images:
-            [
-                "seandavidson_lore_1.jpg",
-                "seandavidson_lore_7.jpg",
-                "seandavidson_lore_11.jpg",
-                "seandavidson_lore_12.jpg",
-                "seandavidson_lore_15.jpg",
-                "seandavidson_lore_17.jpg",
             ]
         },
         {
