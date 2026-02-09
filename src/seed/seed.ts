@@ -550,6 +550,26 @@ export const portfolioData: SeedData = {
             ]
         },
         {
+            id: 36,
+            title: "Lore",
+            client: "",
+            description: "COLLECTIF designed the MEP systems for a premium wellness location, supporting exceptional comfort and energy performance. ",
+            category: "Wellness",
+            photoCredit: "Sean Davidson / Lore Bathing Club",
+            architect: "Interior Design: Ringo Studio",
+            location: "New York, NY",
+            article: "",
+            images:
+            [
+                "seandavidson_lore_1.jpg",
+                "seandavidson_lore_7.jpg",
+                "seandavidson_lore_11.jpg",
+                "seandavidson_lore_12.jpg",
+                "seandavidson_lore_15.jpg",
+                "seandavidson_lore_17.jpg",
+            ]
+        },
+        {
             id: 29,
             title: "Lumber Road Apartments",
             client: "Lumber Earth Realty",
@@ -605,26 +625,6 @@ export const portfolioData: SeedData = {
                 "shen-7.jpeg",
                 "shen-8.jpg",
                 "shen-9.jpg",
-            ]
-        },
-        {
-            id: 36,
-            title: "Lore",
-            client: "",
-            description: "COLLECTIF designed the MEP systems for a premium wellness location, supporting exceptional comfort and energy performance. ",
-            category: "Wellness",
-            photoCredit: "Sean Davidson / Lore Bathing Club",
-            architect: "Interior Design: Ringo Studio",
-            location: "New York, NY",
-            article: "",
-            images:
-            [
-                "seandavidson_lore_1.jpg",
-                "seandavidson_lore_7.jpg",
-                "seandavidson_lore_11.jpg",
-                "seandavidson_lore_12.jpg",
-                "seandavidson_lore_15.jpg",
-                "seandavidson_lore_17.jpg",
             ]
         },
         {
