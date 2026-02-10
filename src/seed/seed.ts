@@ -380,28 +380,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 20,
-            title: "Jane Street Multi-Family Residential",
-            client: "Private",
-            description: "COLLECTIF led the MEP design for a full renovation of a 3-bedroom 2.5-bath Greenwich Village duplex. COLLECTIF is in the process of electrifying the entire building to reduce the overall carbon footprint.",
-            category: "Residential",
-            photoCredit: "AÄ MÄ Studio",
-            architect: "AÄ MÄ Studio",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "jane-street-1.jpg",
-                "jane-street-2.jpg",
-                "jane-street-3.jpg",
-                "jane-street-4.jpg",
-                "jane-street-5.jpg",
-                "jane-street-6.jpg",
-                "jane-street-7.jpg",
-                "jane-street-8.jpg",
-            ]
-        },
-        {
             id: 21,
             title: "Flying Bend",
             client: "Private",
