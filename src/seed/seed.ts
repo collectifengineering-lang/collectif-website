@@ -181,21 +181,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 8,
-            title: "Melkonian Capital Headquarters ",
-            client: "Melkonian Capital ",
-            description: "A new office floor and rooftop penthouse built on top of an existing high rise in Manhattan. Corporate interiors renovation of two existing floors. Total project area of roughly 25,000 sqft.\nDesign of new MEP/FP systems to serve the new floor office addition (roughly 7,000 SQFT), renovation of the existing 8th & 12th floor (roughly 7,000 SQFT each) and a new penthouse rooftop level (roughly 3,600 SQFT of indoor and outdoor space).",
-            category: "Corporate",
-            photoCredit: "",
-            architect: "Colberg Architecture",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "melknian-1.jpg",
-            ]
-        },
-        {
             id: 9,
             title: "10 Eyck Street Production Studio",
             client: "Chemistry Creative",
