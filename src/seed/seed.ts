@@ -553,7 +553,7 @@ export const portfolioData: SeedData = {
         },
         {
             id: 28,
-            title: "Skinnyside Modular**",
+            title: "Skinnyside Modular",
             client: "Private",
             description: "MEP-FP design and filing services for a new three story single family house in Queens, NYC. Modular construction. Ten foot wide ground up construction in an irregular lot. The building is approximately 2,600 gross square feet, consisting of 3 levels and a basement.  A high efficiency HVAC VRF system provides the air conditioning throughout the house. New incoming electrical, sewer and domestic water services. Fully coordinated with the modular construction company in PA.",
             category: "Residential",
