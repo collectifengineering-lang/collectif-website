@@ -332,21 +332,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 17,
-            title: "Trinity Apartments Multi-Family Residential",
-            client: "Trinity Housing",
-            description: "COLLECTIF led the MEP design for the renovation of multiple components within the existing residential tower, including the electrical and plumbing systems for 200+ apartments, HVAC and electrical systems to support the replacement of passenger elevators, and the replacement of the building's boiler. COLLECTIF engineering is also performing the code required special inspections.",
-            category: "Residential",
-            photoCredit: "",
-            architect: "MHG Architects, PC",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "Trinity-House-100-West-92nd-Street-1.jpg",
-            ]
-        },
-        {
             id: 18,
             title: "11 Essex Multi-Family Residential",
             client: "11 Essex Street Realty, LLC",
