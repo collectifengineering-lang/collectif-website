@@ -181,21 +181,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 8,
-            title: "Melkonian Capital Headquarters ",
-            client: "Melkonian Capital ",
-            description: "A new office floor and rooftop penthouse built on top of an existing high rise in Manhattan. Corporate interiors renovation of two existing floors. Total project area of roughly 25,000 sqft.\nDesign of new MEP/FP systems to serve the new floor office addition (roughly 7,000 SQFT), renovation of the existing 8th & 12th floor (roughly 7,000 SQFT each) and a new penthouse rooftop level (roughly 3,600 SQFT of indoor and outdoor space).",
-            category: "Corporate",
-            photoCredit: "",
-            architect: "Colberg Architecture",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "melknian-1.jpg",
-            ]
-        },
-        {
             id: 9,
             title: "10 Eyck Street Production Studio",
             client: "Chemistry Creative",
@@ -347,21 +332,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 17,
-            title: "Trinity Apartments Multi-Family Residential",
-            client: "Trinity Housing",
-            description: "COLLECTIF led the MEP design for the renovation of multiple components within the existing residential tower, including the electrical and plumbing systems for 200+ apartments, HVAC and electrical systems to support the replacement of passenger elevators, and the replacement of the building's boiler. COLLECTIF engineering is also performing the code required special inspections.",
-            category: "Residential",
-            photoCredit: "",
-            architect: "MHG Architects, PC",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "Trinity-House-100-West-92nd-Street-1.jpg",
-            ]
-        },
-        {
             id: 18,
             title: "11 Essex Multi-Family Residential",
             client: "11 Essex Street Realty, LLC",
@@ -392,28 +362,6 @@ export const portfolioData: SeedData = {
                 "pinehurst-1.jpg",
                 "pinehurst-2.jpg",
                 "pinehurst-3.jpg",
-            ]
-        },
-        {
-            id: 20,
-            title: "Jane Street Multi-Family Residential",
-            client: "Private",
-            description: "COLLECTIF led the MEP design for a full renovation of a 3-bedroom 2.5-bath Greenwich Village duplex. COLLECTIF is in the process of electrifying the entire building to reduce the overall carbon footprint.",
-            category: "Residential",
-            photoCredit: "AÄ MÄ Studio",
-            architect: "AÄ MÄ Studio",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "jane-street-1.jpg",
-                "jane-street-2.jpg",
-                "jane-street-3.jpg",
-                "jane-street-4.jpg",
-                "jane-street-5.jpg",
-                "jane-street-6.jpg",
-                "jane-street-7.jpg",
-                "jane-street-8.jpg",
             ]
         },
         {
@@ -553,7 +501,7 @@ export const portfolioData: SeedData = {
         },
         {
             id: 28,
-            title: "Skinnyside Modular**",
+            title: "Skinnyside Modular",
             client: "Private",
             description: "MEP-FP design and filing services for a new three story single family house in Queens, NYC. Modular construction. Ten foot wide ground up construction in an irregular lot. The building is approximately 2,600 gross square feet, consisting of 3 levels and a basement.  A high efficiency HVAC VRF system provides the air conditioning throughout the house. New incoming electrical, sewer and domestic water services. Fully coordinated with the modular construction company in PA.",
             category: "Residential",
