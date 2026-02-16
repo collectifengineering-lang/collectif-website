@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import styles from "@/styles/contact.module.css";
 
 const ContactCard = () => {
@@ -12,6 +12,11 @@ const ContactCard = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+
+  // Spam prevention: honeypot field (should remain empty)
+  const [honeypot, setHoneypot] = useState("");
+  // Spam prevention: record when the form was loaded
+  const formLoadTime = useRef(Date.now());
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -31,7 +36,11 @@ const ContactCard = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          _website: honeypot,
+          _loadedAt: formLoadTime.current,
+        }),
       });
 
       if (response.ok) {
@@ -61,6 +70,19 @@ const ContactCard = () => {
         <div className={styles.formSection}>
           <h2 className={styles.formTitle}>Send Us a Message</h2>
           <form onSubmit={handleSubmit} className={styles.contactForm}>
+            {/* Honeypot field - hidden from humans, visible to bots */}
+            <div className={styles.honeypotField} aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label htmlFor="name" className={styles.formLabel}>

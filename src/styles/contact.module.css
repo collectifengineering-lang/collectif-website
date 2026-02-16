@@ -117,6 +117,18 @@
   line-height: 1.6;
 }
 
+/* Honeypot - hidden from humans but accessible to bots */
+.honeypotField {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 /* Contact Form Styles */
 .formSection {
   width: 100%;

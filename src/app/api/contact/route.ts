@@ -7,6 +7,8 @@ interface ContactFormData {
   company?: string;
   subject: string;
   message: string;
+  _website?: string;
+  _loadedAt?: number;
 }
 
 const subjectLabels: Record<string, string> = {
@@ -17,9 +19,75 @@ const subjectLabels: Record<string, string> = {
   "general": "General Inquiry",
 };
 
+// --- Rate limiting (in-memory, per-IP) ---
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX_REQUESTS = 5; // max submissions per window
+const MIN_SUBMIT_TIME_MS = 3000; // minimum 3 seconds between load and submit
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX_REQUESTS;
+}
+
+// Clean up stale entries periodically to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap) {
+    if (now > entry.resetAt) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, RATE_LIMIT_WINDOW_MS);
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting by IP
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+
+    if (isRateLimited(ip)) {
+      console.warn(`Rate limited contact submission from IP: ${ip}`);
+      return NextResponse.json(
+        { error: "Too many submissions. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body: ContactFormData = await request.json();
+
+    // Spam check: honeypot field should be empty
+    if (body._website) {
+      console.warn(`Honeypot triggered by IP: ${ip}`);
+      // Return 200 so bots think it succeeded
+      return NextResponse.json(
+        { message: "Message sent successfully" },
+        { status: 200 }
+      );
+    }
+
+    // Spam check: form must have been loaded for at least a few seconds
+    if (body._loadedAt) {
+      const elapsed = Date.now() - body._loadedAt;
+      if (elapsed < MIN_SUBMIT_TIME_MS) {
+        console.warn(`Suspiciously fast submission (${elapsed}ms) from IP: ${ip}`);
+        return NextResponse.json(
+          { message: "Message sent successfully" },
+          { status: 200 }
+        );
+      }
+    }
 
     // Validate required fields
     if (!body.name || !body.email || !body.subject || !body.message) {
@@ -38,7 +106,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate subject is one of the allowed values
+    if (!subjectLabels[body.subject]) {
+      console.warn(`Invalid subject value "${body.subject}" from IP: ${ip}`);
+      return NextResponse.json(
+        { error: "Invalid subject selection" },
+        { status: 400 }
+      );
+    }
+
     const subjectLabel = subjectLabels[body.subject] || body.subject;
+
+    // Strip spam-prevention fields so they don't end up in emails
+    const { _website, _loadedAt, ...cleanBody } = body;
 
     // Initialize Resend at runtime (not build time) to ensure env var is available
     const apiKey = process.env.RESEND_API_KEY;
