@@ -559,6 +559,25 @@ export const portfolioData: SeedData = {
             ]
         },
         {
+            id: 37,
+            title: "Tina's Hospital",
+            client: "Happy Doggo",
+            description: "Our team led the MEP/FP engineering design for Tina’s Hospital for Dogs, a new ~40,000-square-foot veterinary facility in Ko Samui, Thailand. This is a meaningful initiative to provide medical care to Thailand’s vulnerable street dogs.  The hospital, designed by Danny Forster & Architecture, features state-of-the-art facilities. ",
+            category: "Cultural",
+            photoCredit: "Moso Studio",
+            architect: "Danny Forster & Architecture",
+            location: "Ko Samui, Thailand",
+            article: "https://www.happydoggo.com/tinas-hospital",
+            images:
+            [
+                "tinas-1.jpg",
+                "tinas-3.jpg",
+                "tinas-4.jpg",
+                "tinas-6.jpg",
+                "tinas-7.jpg",
+            ]
+        },
+        {
             id: 32,
             title: "(Malin+Goetz)",
             client: "(Malin+Goetz)",
@@ -630,25 +649,6 @@ export const portfolioData: SeedData = {
                 "citizenm-denver-1.jpg",
                 "citizenm-denver-2.jpg",
                 "citizenm-denver-3.jpg",
-            ]
-        },
-        {
-            id: 37,
-            title: "Tina's Hospital",
-            client: "Happy Doggo",
-            description: "Our team led the MEP/FP engineering design for Tina’s Hospital for Dogs, a new ~40,000-square-foot veterinary facility in Ko Samui, Thailand. This is a meaningful initiative to provide medical care to Thailand’s vulnerable street dogs.  The hospital, designed by Danny Forster & Architecture, features state-of-the-art facilities. ",
-            category: "Cultural",
-            photoCredit: "Moso Studio",
-            architect: "Danny Forster & Architecture",
-            location: "Ko Samui, Thailand",
-            article: "https://www.happydoggo.com/tinas-hospital",
-            images:
-            [
-                "tinas-1.jpg",
-                "tinas-3.jpg",
-                "tinas-4.jpg",
-                "tinas-6.jpg",
-                "tinas-7.jpg",
             ]
         }
     ]
