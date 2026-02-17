@@ -620,6 +620,23 @@ export const portfolioData: SeedData = {
                 "cassette.jpg",
                 "cassette2.jpg",
             ]
+        },
+        {
+            id: 40,
+            title: "Lola's",
+            client: "Lola's",
+            description: "COLLECTIF designed the MEP-FP systems for the Lola’s Restaurant fit-out in New York City. These systems were precisely tailored to sustain a bustling dining atmosphere, integrating efficient HVAC with new split or VRF units for optimal climate control amid sizzling kitchens and lively crowds, reliable plumbing and gas lines for seamless food prep and hot water demands, and advanced electrical and fire protection setups to power vibrant lighting, appliances, and safety features, all self-certified for code compliance in a high-energy hospitality space.",
+            category: "Commercial",
+            photoCredit: "",
+            architect: "Coccoza",
+            location: "New York, NY",
+            article: "",
+            images:
+            [
+                "lola-5.jpg",
+                "screenshot-2026-01-15-163233.png",
+                "screenshot-2026-01-15-163327.png",
+            ]
         }
     ]
 }
