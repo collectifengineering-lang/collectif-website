@@ -295,7 +295,7 @@ export const portfolioData: SeedData = {
             title: "Modulous",
             client: "Modulous",
             description: "Modulous aims to help eliminate the global housing deficit while improving industry efficiency, designing out waste and raising quality and performance standards. Designs are based on their proprietary Kit of Parts, which is a series of sub-assemblies procured from the established supply chain that can be  brought together to create modular homes in facilities local to site. COLLECTIF provides MEP Engineering R&D & Design support for Modulous in the United States",
-            category: "Residential",
+            category: "Modular",
             photoCredit: "Modulous",
             architect: "n/a",
             location: "n/a",
@@ -440,7 +440,7 @@ export const portfolioData: SeedData = {
             title: "Harlem Modular Multi-Family Residential",
             client: "Private",
             description: "MEP-FP design and filing services for a new 6,700 GSF, six story, low rise modular condominium building in Manhattan, NY. Fully coordinated with modular construction company in Brooklyn, NY. In production/construction. Substantial completion: March 2020.",
-            category: "Residential",
+            category: "Modular",
             photoCredit: "The Up Studio",
             architect: "The Up Studio",
             location: "New York, New York",
@@ -448,23 +448,6 @@ export const portfolioData: SeedData = {
             images:
             [
                 "harlemmodular-1.jpg",
-            ]
-        },
-        {
-            id: 26,
-            title: "155 Perry Multi-Family Residential",
-            client: "Private",
-            description: "Design of new HVAC system for a West Village condo renovation. Replacement of existing PTACs with a new VRF system with condensing unit located inside new MER closet in the condo unit. Close coordination with Owner, Architect, equipment vendor and condo board to make this project a reality.",
-            category: "Residential",
-            photoCredit: "WRRH",
-            architect: "WRRH",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "155-perry-1.jpg",
-                "155-perry-2.jpg",
-                "155-perry-3.jpg",
             ]
         },
         {
@@ -488,7 +471,7 @@ export const portfolioData: SeedData = {
             title: "Skinnyside Modular",
             client: "Private",
             description: "MEP-FP design and filing services for a new three story single family house in Queens, NYC. Modular construction. Ten foot wide ground up construction in an irregular lot. The building is approximately 2,600 gross square feet, consisting of 3 levels and a basement.  A high efficiency HVAC VRF system provides the air conditioning throughout the house. New incoming electrical, sewer and domestic water services. Fully coordinated with the modular construction company in PA.",
-            category: "Residential",
+            category: "Modular",
             photoCredit: "Think! Architecture and Design",
             architect: "The Up Studio",
             location: "Queens, New York",
@@ -548,7 +531,7 @@ export const portfolioData: SeedData = {
             title: "(Malin+Goetz)",
             client: "(Malin+Goetz)",
             description: "MEP consulting, design & filing services for the newest Malin+Goetz Brooklyn apothecary. A high efficiency HVAC VRF system & hot water radiators provide the air conditioning in the store. Linear diffusers used throughout the space to make the air conditioning virtually disappear, while providing a comfortable space for the clients.",
-            category: "Retail",
+            category: "Commercial",
             photoCredit: "A+i",
             architect: "A+i",
             location: "Brooklyn, New York",
