@@ -21,7 +21,7 @@ const Footer = () => {
         <div className={styles.footerLinks}>
           <Link href="/studio" className={styles.footerLink}>Studio</Link>
           <Link href="/work" className={styles.footerLink}>Work</Link>
-          <Link href="/culture" className={styles.footerLink}>Culture</Link>
+          <Link href="/social" className={styles.footerLink}>Social</Link>
           <Link href="/contact" className={styles.footerLink}>Contact</Link>
         </div>
         <div className={styles.footerSocial}>

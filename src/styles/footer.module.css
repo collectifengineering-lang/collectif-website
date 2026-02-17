@@ -1,9 +1,8 @@
 .footer {
   width: 100%;
   background-color: white;
-  border-top: 3px solid var(--color-collectif-violet);
-  padding: 40px 20px;
-  margin-top: 60px;
+  padding: 24px 20px;
+  margin-top: 40px;
 }
 
 .footerContent {
@@ -12,7 +11,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
+  gap: 12px;
 }
 
 .footerLogo {
@@ -23,19 +22,22 @@
 
 .logoImage {
   object-fit: contain;
+  width: 60px;
+  height: 60px;
 }
 
 .footerLinks {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 30px;
+  gap: 24px;
 }
 
 .footerLink {
   color: var(--color-text);
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
   transition: color 0.3s ease;
 }
 
@@ -52,6 +54,7 @@
 .socialLink {
   color: var(--color-collectif-pink);
   text-decoration: none;
+  font-size: 0.85rem;
   transition: color 0.3s ease;
 }
 
@@ -60,7 +63,8 @@
 }
 
 .separator {
-  color: var(--color-text);
+  color: var(--color-smokedGrey-text);
+  font-size: 0.8rem;
 }
 
 .footerLegal {
@@ -72,9 +76,9 @@
 .legalLink {
   color: var(--color-text);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   transition: color 0.3s ease;
-  opacity: 0.7;
+  opacity: 0.5;
 }
 
 .legalLink:hover {
@@ -85,7 +89,8 @@
 .footerCopyright {
   text-align: center;
   color: var(--color-text);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
+  opacity: 0.5;
 }
 
 .footerCopyright p {
@@ -94,16 +99,16 @@
 
 @media (max-width: 768px) {
   .footer {
-    padding: 30px 15px;
+    padding: 20px 15px;
   }
 
   .footerLinks {
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     align-items: center;
   }
 
   .footerContent {
-    gap: 20px;
+    gap: 10px;
   }
 }

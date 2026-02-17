@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useUIStore } from "@/store";
-import { IoHomeOutline, IoBriefcaseOutline, IoPersonOutline, IoShareSocialOutline } from "react-icons/io5"
+import { IoHomeOutline, IoBriefcaseOutline, IoShareSocialOutline } from "react-icons/io5"
 // import { BsPersonGear } from "react-icons/bs";
 import { FaRegHandshake } from "react-icons/fa";
 import { FaHelmetSafety } from "react-icons/fa6";
@@ -85,15 +85,6 @@ export const SideBar = () => {
                         size={ 20 }
                     />
                     <span className="ml-3 text-ml">Work</span>
-                </Link>
-                <Link 
-                    href="/culture"
-                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/culture' ? 'text-[#e62883]' : ''}`}
-                >
-                    <IoPersonOutline 
-                        size={ 20 }
-                    />
-                    <span className="ml-3 text-ml">Culture</span>
                 </Link>
                 <Link 
                     href="/social"

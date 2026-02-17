@@ -51,7 +51,6 @@ export const TopMenu = () => {
                 {/* <Link className={`${roboto.className} ${styles.textLink}`} href="/">Home</Link> */}
                 <Link className={`${roboto.className} ${pathname === '/studio' ? styles.textLinkActive : styles.textLink}`} href="/studio">Studio</Link>
                 <Link className={`${roboto.className} ${['/work', '/works'].includes(pathname) ? styles.textLinkActive : styles.textLink}`} href="/work">Work</Link>
-                <Link className={`${roboto.className} ${pathname === '/culture' ? styles.textLinkActive : styles.textLink}`} href="/culture">Culture</Link>
                 <Link className={`${roboto.className} ${pathname === '/social' ? styles.textLinkActive : styles.textLink}`} href="/social">Social</Link>
                 <Link className={`${roboto.className} ${pathname === '/contact' ? styles.textLinkActive : styles.textLink}`} href="/contact">Contact</Link>
               </div>
