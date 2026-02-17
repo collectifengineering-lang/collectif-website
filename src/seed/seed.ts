@@ -50,6 +50,9 @@ export const portfolioData: SeedData = {
                 "bathhousem-1.jpg",
                 "bathhousem-2.jpg",
                 "bathhousem-3.jpg",
+                "1724147108739.jpg",
+                "bathhouse-1.jpg",
+                "screenshot-3-2023-10-30-165611.png",
             ]
         },
         {
