@@ -436,21 +436,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 25,
-            title: "Harlem Modular Multi-Family Residential",
-            client: "Private",
-            description: "MEP-FP design and filing services for a new 6,700 GSF, six story, low rise modular condominium building in Manhattan, NY. Fully coordinated with modular construction company in Brooklyn, NY. In production/construction. Substantial completion: March 2020.",
-            category: "Modular",
-            photoCredit: "The Up Studio",
-            architect: "The Up Studio",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "harlemmodular-1.jpg",
-            ]
-        },
-        {
             id: 27,
             title: "The Oosten Multi-Family Residential",
             client: "Xin Development",
