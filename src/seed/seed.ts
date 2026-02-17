@@ -559,7 +559,7 @@ export const portfolioData: SeedData = {
             title: "Shen Beauty",
             client: "Shen Beauty",
             description: "MEP consulting, design & filing services for Shen Beauty's flagship store in Brooklyn. The space consists of a retail space and five treatment rooms. A high efficiency HVAC VRF system provides the air conditioning in the store. Linear diffusers used throughout the space to make the air conditioning virtually disappear, while providing a comfortable space for the clients.",
-            category: "Retail",
+            category: "Commercial",
             photoCredit: "",
             architect: "Architect: Office of Collaborative Architecture LLC         \nInterior Design / Branding\nMythology",
             location: "Brooklyn, New York",
