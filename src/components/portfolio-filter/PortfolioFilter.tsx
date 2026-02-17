@@ -11,14 +11,14 @@ interface Props {
 export const PortfolioFilter = ({ onCategoryChange, selectedCategory }: Props) => {
     const categories = [
         { label: 'Show All', value: 'all' },
+        { label: 'Wellness', value: 'Wellness' },
+        { label: 'Cultural', value: 'Cultural' },
+        { label: 'Hospitality', value: 'hospitality' },
+        { label: 'Modular', value: 'Modular' },
         { label: 'Commercial', value: 'commercial' },
-        { label: 'Retail', value: 'retail' },
+        { label: 'Residential', value: 'Residential' },
         { label: 'Corporate', value: 'corporate' },
         { label: 'Healthcare', value: 'healthcare' },
-        { label: 'Hospitality', value: 'hospitality' },
-        { label: 'Cultural', value: 'Cultural' },
-        { label: 'Residential', value: 'Residential' },
-        { label: 'Wellness', value: 'Wellness' },
       ];
     
       return (

@@ -61,7 +61,7 @@ export const SideBar = () => {
                 {/* menu */}
                 <Link 
                     href="/"
-                    className="flex items-center mt-11 p-2 hover:bg-gray-100 rounded transition-all"
+                    className={`flex items-center mt-11 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/' ? 'text-[#e62883]' : ''}`}
                 >
                     <IoHomeOutline 
                         size={ 20 }
@@ -70,7 +70,7 @@ export const SideBar = () => {
                 </Link>
                 <Link 
                     href="/studio"
-                    className="flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all"
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/studio' ? 'text-[#e62883]' : ''}`}
                 >
                     <FaHelmetSafety 
                         size={ 20 }
@@ -79,7 +79,7 @@ export const SideBar = () => {
                 </Link>
                 <Link 
                     href="/work"
-                    className="flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all"
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/work' ? 'text-[#e62883]' : ''}`}
                 >
                     <IoBriefcaseOutline 
                         size={ 20 }
@@ -88,7 +88,7 @@ export const SideBar = () => {
                 </Link>
                 <Link 
                     href="/culture"
-                    className="flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all"
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/culture' ? 'text-[#e62883]' : ''}`}
                 >
                     <IoPersonOutline 
                         size={ 20 }
@@ -97,7 +97,7 @@ export const SideBar = () => {
                 </Link>
                 <Link 
                     href="/social"
-                    className="flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all"
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/social' ? 'text-[#e62883]' : ''}`}
                 >
                     <IoShareSocialOutline 
                         size={ 20 }
@@ -106,7 +106,7 @@ export const SideBar = () => {
                 </Link>
                 <Link 
                     href="/contact"
-                    className="flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all"
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/contact' ? 'text-[#e62883]' : ''}`}
                 >
                     <FaRegHandshake 
                         size={ 20 }

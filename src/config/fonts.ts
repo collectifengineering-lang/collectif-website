@@ -1,26 +1,13 @@
-import { Lato, Montserrat, Staatliches, Inter, Roboto } from "next/font/google";
+import { Jost } from "next/font/google";
 
-export const lato = Lato({ 
+const jost = Jost({
     subsets: ["latin"],
-    weight: ['400', '700']
+    weight: ['300', '400', '500', '700'],
+    variable: '--font-jost',
 });
 
-export const mainFont = Staatliches({ 
-    subsets: ["latin"],
-    weight: ['400'],
-});
-
-export const montserrat = Montserrat({ 
-    subsets: ["latin"],
-    weight: ['400'],
-});
-
-export const inter = Inter({ 
-    subsets: ["latin"],
-    weight: ['200'],
-});
-
-export const roboto = Roboto({ 
-    subsets: ["latin"],
-    weight: ['300'],
-});
+export const lato = jost;
+export const mainFont = jost;
+export const montserrat = jost;
+export const inter = jost;
+export const roboto = jost;

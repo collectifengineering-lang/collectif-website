@@ -10,9 +10,6 @@ const studio = studiosData.studios
 const About = () => {
   return (
     <div className={ styles.container } id='studio'>
-        <div className={ styles.stickyHeader}>  
-          <h1 className={styles.staticHeader}>STUDIO</h1>
-        </div>
         <AboutContent 
             dataPrincipalTeam={data}
             studiosData={studio}

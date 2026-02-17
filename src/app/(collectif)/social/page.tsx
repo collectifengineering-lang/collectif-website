@@ -5,9 +5,6 @@ import styles from '@/styles/social.module.css';
 const Social = () => {
   return (
     <div className={styles.container}>
-      <div className={styles.stickyHeader}>  
-        <h1 className={styles.staticHeader}>SOCIAL</h1>
-      </div>
       <div className={styles.contentContainer}>
         <div className={styles.widgetContainer}>
           <div data-key="LinkedIn Feed Wall" className="ft" id="ftgqasxwe"></div>

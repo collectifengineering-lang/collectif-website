@@ -18,9 +18,6 @@ const Portfolio = () => {
 
   return (
     <div className={styles.container} id="work">
-      <div className={ styles.stickyHeader}>   
-        <h1 className={styles.staticHeader}>WORK</h1>
-      </div>
       <PortfolioFilter onCategoryChange={handleCategoryChange} selectedCategory={selectedCategory} />
       <ProductGrid dataPortfolio={filteredData} selectedCategory={selectedCategory}/>
     </div>

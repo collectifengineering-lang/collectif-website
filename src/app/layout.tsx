@@ -37,7 +37,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${lato.className}`}>
+      <body className={`${lato.className} ${lato.variable}`}>
         <ClientScreensaverProvider>
           <TopMenu />
           <SideBar />

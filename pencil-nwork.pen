@@ -1,0 +1,530 @@
+{
+  "version": "2.8",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "Frame",
+      "clip": true,
+      "width": 800,
+      "height": 600,
+      "fill": "#FFFFFF",
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "QVMPh",
+      "x": 0,
+      "y": 0,
+      "name": "Work Page",
+      "width": 1440,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "FXMtS",
+          "name": "Navbar",
+          "width": "fill_container",
+          "height": 60,
+          "padding": [
+            12,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "9X6We",
+              "name": "Logo",
+              "width": 50,
+              "height": 40,
+              "stroke": {
+                "thickness": 1.5,
+                "fill": "#6EC6B8"
+              },
+              "layout": "vertical",
+              "padding": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "2yeBd",
+                  "name": "logoLine1",
+                  "fill": "#6EC6B8",
+                  "content": "COL",
+                  "fontFamily": "Inter",
+                  "fontSize": 8,
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "3H3Kq",
+                  "name": "logoLine2",
+                  "fill": "#6EC6B8",
+                  "content": "LEC",
+                  "fontFamily": "Inter",
+                  "fontSize": 8,
+                  "letterSpacing": 2
+                },
+                {
+                  "type": "text",
+                  "id": "p1hC4",
+                  "name": "logoLine3",
+                  "fill": "#6EC6B8",
+                  "content": "TIF",
+                  "fontFamily": "Inter",
+                  "fontSize": 8,
+                  "letterSpacing": 2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "onGzW",
+              "name": "Nav Links",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "PfWDh",
+                  "name": "link1",
+                  "fill": "#333333",
+                  "content": "PROFILE",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "7lHR5",
+                  "name": "link2",
+                  "fill": "#333333",
+                  "content": "EXPERTISE",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "WadzQ",
+                  "name": "link3",
+                  "fill": "#D6006C",
+                  "content": "WORK",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "8Y1Rn",
+                  "name": "link4",
+                  "fill": "#333333",
+                  "content": "CONTACT",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "letterSpacing": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HSBHn",
+          "name": "Category Grid",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "padding": [
+            0,
+            24,
+            24,
+            24
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "NUcY3",
+              "name": "Row 1",
+              "width": "fill_container",
+              "height": 420,
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "lCdF9",
+                  "name": "Wellness",
+                  "metadata": {
+                    "type": "unsplash",
+                    "username": "alextyson195",
+                    "link": "https://unsplash.com/@alextyson195",
+                    "author": "Alex Tyson"
+                  },
+                  "clip": true,
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "https://images.unsplash.com/photo-1723810743190-8ed28062dc55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzNDU1MzF8&ixlib=rb-4.1.0&q=80&w=1080",
+                    "mode": "fill"
+                  },
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "KInuC",
+                      "name": "wellnessLabel",
+                      "fill": "#FFFFFF",
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#00000055",
+                        "offset": {
+                          "x": 0,
+                          "y": 2
+                        },
+                        "blur": 20
+                      },
+                      "content": "WELLNESS",
+                      "fontFamily": "Inter",
+                      "fontSize": 52,
+                      "fontWeight": "300",
+                      "letterSpacing": 6
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vyhr4",
+                  "name": "Cultural",
+                  "metadata": {
+                    "type": "unsplash",
+                    "username": "britosebastian",
+                    "link": "https://unsplash.com/@britosebastian",
+                    "author": "Sebastián Brito"
+                  },
+                  "clip": true,
+                  "width": 460,
+                  "height": "fill_container",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "https://images.unsplash.com/photo-1714429643920-b9f74ec55611?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzNDU1MzJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                    "mode": "fill"
+                  },
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "D6QwS",
+                      "name": "culturalLabel",
+                      "fill": "#FFFFFF",
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#00000055",
+                        "offset": {
+                          "x": 0,
+                          "y": 2
+                        },
+                        "blur": 20
+                      },
+                      "content": "CULTURAL",
+                      "fontFamily": "Inter",
+                      "fontSize": 48,
+                      "fontWeight": "300",
+                      "letterSpacing": 6
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "w9j68",
+              "name": "Rows 2-3",
+              "width": "fill_container",
+              "height": 700,
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PoXoj",
+                  "name": "Left 2x2",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "0iMMe",
+                      "name": "Row 2 Left",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "v52KS",
+                          "name": "Residential",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "alberofurniture",
+                            "link": "https://unsplash.com/@alberofurniture",
+                            "author": "Albero Furniture Bratislava"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1687180497716-5872969e5125?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzNDU1MzJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Q308f",
+                              "name": "resLabel",
+                              "fill": "#FFFFFF",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#00000055",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 2
+                                },
+                                "blur": 20
+                              },
+                              "content": "RESIDENTIAL",
+                              "fontFamily": "Inter",
+                              "fontSize": 36,
+                              "fontWeight": "300",
+                              "letterSpacing": 5
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "1esjL",
+                          "name": "Modular",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "mkacompany",
+                            "link": "https://unsplash.com/@mkacompany",
+                            "author": "Kirill Mikhaylyuk"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1659514778710-3cb6f3b7f40b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzNDU1MzJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "AY0YM",
+                              "name": "modLabel",
+                              "fill": "#FFFFFF",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#00000055",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 2
+                                },
+                                "blur": 20
+                              },
+                              "content": "MODULAR",
+                              "fontFamily": "Inter",
+                              "fontSize": 36,
+                              "fontWeight": "300",
+                              "letterSpacing": 5
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SeBZl",
+                      "name": "Row 3 Left",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YhGZ6",
+                          "name": "Corporate",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "___atmos",
+                            "link": "https://unsplash.com/@___atmos",
+                            "author": "Caroline Badran"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1771270759486-1f7703945072?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzNDU1MzJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "IquvB",
+                              "name": "corpLabel",
+                              "fill": "#FFFFFF",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#00000055",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 2
+                                },
+                                "blur": 20
+                              },
+                              "content": "CORPORATE",
+                              "fontFamily": "Inter",
+                              "fontSize": 36,
+                              "fontWeight": "300",
+                              "letterSpacing": 5
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Zqynl",
+                          "name": "Commercial",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "wholenewworldphoto",
+                            "link": "https://unsplash.com/@wholenewworldphoto",
+                            "author": "Whole New World Photo"
+                          },
+                          "clip": true,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1723551908887-43daaa09f77c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzNDU1MzN8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tHtYh",
+                              "name": "commLabel",
+                              "fill": "#FFFFFF",
+                              "effect": {
+                                "type": "shadow",
+                                "shadowType": "outer",
+                                "color": "#00000055",
+                                "offset": {
+                                  "x": 0,
+                                  "y": 2
+                                },
+                                "blur": 20
+                              },
+                              "content": "COMMERCIAL",
+                              "fontFamily": "Inter",
+                              "fontSize": 36,
+                              "fontWeight": "300",
+                              "letterSpacing": 5
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "eMa5x",
+                  "name": "Hospitality",
+                  "metadata": {
+                    "type": "unsplash",
+                    "username": "bengraph",
+                    "link": "https://unsplash.com/@bengraph",
+                    "author": "charkrit"
+                  },
+                  "clip": true,
+                  "width": 460,
+                  "height": "fill_container",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "https://images.unsplash.com/photo-1728016280596-836bd63eff46?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzNDU1MzN8&ixlib=rb-4.1.0&q=80&w=1080",
+                    "mode": "fill"
+                  },
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PskWC",
+                      "name": "hospLabel",
+                      "fill": "#FFFFFF",
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#00000055",
+                        "offset": {
+                          "x": 0,
+                          "y": 2
+                        },
+                        "blur": 20
+                      },
+                      "content": "HOSPITALITY",
+                      "fontFamily": "Inter",
+                      "fontSize": 42,
+                      "fontWeight": "300",
+                      "letterSpacing": 5
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
