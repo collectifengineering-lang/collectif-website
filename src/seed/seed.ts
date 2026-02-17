@@ -343,27 +343,9 @@ export const portfolioData: SeedData = {
             article: "",
             images:
             [
-                "11-essex-street-04-1.jpg",
-                "11-essex-street-02.jpg",
-                "11-essex-street-03.jpg",
                 "11-essex-street-05.jpg",
-            ]
-        },
-        {
-            id: 19,
-            title: "118 Pinehurst Multi-Family Residential",
-            client: "Hudson View Gardens",
-            description: "COLLECTIF led the mechanical design for the phased replacement of campus hot water distribution piping supporting six multi-family residential buildings.",
-            category: "Residential",
-            photoCredit: "",
-            architect: "",
-            location: "New York, New York",
-            article: "",
-            images:
-            [
-                "pinehurst-1.jpg",
-                "pinehurst-2.jpg",
-                "pinehurst-3.jpg",
+                "11-essex-street-03.jpg",
+                "11-essex-street-04-1.jpg",
             ]
         },
         {
@@ -539,22 +521,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 30,
-            title: "Blank Street Coffee ",
-            client: "Blank Street Coffee",
-            description: "MEP Filing and Design services for a new coffee shop at 178 Court Street, Brooklyn, NY. MEP Construction Administration Services for a new coffee shop at 178 Court Street, Brooklyn, NY.",
-            category: "Retail",
-            photoCredit: "",
-            architect: "Colberg Architecture",
-            location: "Brooklyn, New York",
-            article: "",
-            images:
-            [
-                "blank-coffe-1.jpg",
-                "blank-coffe-2.jpg",
-            ]
-        },
-        {
             id: 31,
             title: "Shen Beauty",
             client: "Shen Beauty",
@@ -582,7 +548,7 @@ export const portfolioData: SeedData = {
             title: "(Malin+Goetz)",
             client: "(Malin+Goetz)",
             description: "MEP consulting, design & filing services for the newest Malin+Goetz Brooklyn apothecary. A high efficiency HVAC VRF system & hot water radiators provide the air conditioning in the store. Linear diffusers used throughout the space to make the air conditioning virtually disappear, while providing a comfortable space for the clients.",
-            category: "Commercial",
+            category: "Retail",
             photoCredit: "A+i",
             architect: "A+i",
             location: "Brooklyn, New York",
