@@ -601,6 +601,22 @@ export const portfolioData: SeedData = {
                 "20250717_39-willow-pl_490.jpg",
                 "20250717_39-willow-pl_517.jpg",
             ]
+        },
+        {
+            id: 39,
+            title: "Cassette Systems",
+            client: "Cassette",
+            description: "COLLECTIF provided MEP review and support for the design of a one-bedroom apartment pod that can stack up to six stories high into a multifamily development. Our firm reviewed the systems’ design for US code compliance, identified key equipment components, established relationships with manufacturers, and collaborated with modular construction companies to guide the systems’ implementation.",
+            category: "Modular",
+            photoCredit: "Cassette",
+            architect: "",
+            location: "USA",
+            article: "",
+            images:
+            [
+                "cassette.jpg",
+                "cassette2.jpg",
+            ]
         }
     ]
 }
