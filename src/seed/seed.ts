@@ -539,22 +539,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 30,
-            title: "Blank Street Coffee ",
-            client: "Blank Street Coffee",
-            description: "MEP Filing and Design services for a new coffee shop at 178 Court Street, Brooklyn, NY. MEP Construction Administration Services for a new coffee shop at 178 Court Street, Brooklyn, NY.",
-            category: "Retail",
-            photoCredit: "",
-            architect: "Colberg Architecture",
-            location: "Brooklyn, New York",
-            article: "",
-            images:
-            [
-                "blank-coffe-1.jpg",
-                "blank-coffe-2.jpg",
-            ]
-        },
-        {
             id: 31,
             title: "Shen Beauty",
             client: "Shen Beauty",
