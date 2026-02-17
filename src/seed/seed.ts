@@ -293,25 +293,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 15,
-            title: "Central Queen Single-Family Residential",
-            client: "Private",
-            description: "COLLECTIF led the design of MEP-FP systems for the renovation of this single-family house in Central Queens.",
-            category: "Residential",
-            photoCredit: "n/a",
-            architect: "Colberg Architecture",
-            location: "Queens, New York",
-            article: "",
-            images:
-            [
-                "central-queens-residence-1.jpeg",
-                "central-queens-residence-2.jpeg",
-                "central-queens-residence-3.jpeg",
-                "central-queens-residence-4.jpeg",
-                "central-queens-residence-5.jpeg",
-            ]
-        },
-        {
             id: 16,
             title: "Greenwich Village Single-Family Residential",
             client: "Private",
@@ -345,6 +326,25 @@ export const portfolioData: SeedData = {
             [
                 "11-essex-street-04-1.jpg",
                 "11-essex-street-02.jpg",
+                "11-essex-street-03.jpg",
+                "11-essex-street-05.jpg",
+            ]
+        },
+        {
+            id: 19,
+            title: "118 Pinehurst Multi-Family Residential",
+            client: "Hudson View Gardens",
+            description: "COLLECTIF led the mechanical design for the phased replacement of campus hot water distribution piping supporting six multi-family residential buildings.",
+            category: "Residential",
+            photoCredit: "",
+            architect: "",
+            location: "New York, New York",
+            article: "",
+            images:
+            [
+                "pinehurst-1.jpg",
+                "pinehurst-2.jpg",
+                "pinehurst-3.jpg",
             ]
         },
         {
