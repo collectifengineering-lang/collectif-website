@@ -343,10 +343,9 @@ export const portfolioData: SeedData = {
             article: "",
             images:
             [
-                "11-essex-street-04-1.jpg",
-                "11-essex-street-02.jpg",
-                "11-essex-street-03.jpg",
                 "11-essex-street-05.jpg",
+                "11-essex-street-03.jpg",
+                "11-essex-street-04-1.jpg",
             ]
         },
         {
