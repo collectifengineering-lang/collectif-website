@@ -650,6 +650,24 @@ export const portfolioData: SeedData = {
                 "citizenm-denver-2.jpg",
                 "citizenm-denver-3.jpg",
             ]
+        },
+        {
+            id: 38,
+            title: "Willow Place",
+            client: "Private",
+            description: "MEP Engineering Design for the conversion of a three-family residential unit to a two-family residential unit in Brooklyn, NY. ",
+            category: "Residential",
+            photoCredit: "©Jack Lovel",
+            architect: "General Store Development",
+            location: "Brooklyn, New York",
+            article: "",
+            images:
+            [
+                "20250717_39-willow-pl_031.jpg",
+                "20250717_39-willow-pl_110.jpg",
+                "20250717_39-willow-pl_490.jpg",
+                "20250717_39-willow-pl_517.jpg",
+            ]
         }
     ]
 }
