@@ -15,7 +15,7 @@
 .projectHeader {
   display: flex;
   align-items: center;
-  padding: 60px 24px 20px;
+  padding: 68px 24px 20px;
   gap: 20px;
 }
 
@@ -57,10 +57,28 @@
 }
 
 .containerCarrouselSwiper {
-  width: 1024px;
+  width: 100%;
+  max-width: 1300px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Slideshow ghost/peek effect */
+.slideshow {
+  width: 100%;
+  padding-bottom: 36px !important;
+}
+
+.slideshow :global(.swiper-slide) {
+  opacity: 0.3;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: scale(0.93);
+}
+
+.slideshow :global(.swiper-slide-active) {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Project details section */

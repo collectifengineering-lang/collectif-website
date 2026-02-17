@@ -13,7 +13,7 @@ export const studiosData: SeedStudiosData = {
     studios: [
         {
             id: 1,
-            title: 'Commercial Interiors Team',
+            title: 'Commercial Interiors',
             description: 'Focused on the design of office fit-outs, lobbies, and amenities, our Commercial Interiors team creates functional and aesthetically pleasing spaces that meet the needs of modern businesses.',
             images: [
                 'specialized-studios-4.jpg'
@@ -21,7 +21,7 @@ export const studiosData: SeedStudiosData = {
         },
         {
             id: 2,
-            title: 'Luxury MEP Team',
+            title: 'Luxury MEP',
             description: 'Specializing in high-end residential, wellness, and retail projects of various scales, our Luxury MEP team delivers sophisticated and innovative solutions.',
             images: [
                 'specialized-studios-1.jpg'
@@ -29,7 +29,7 @@ export const studiosData: SeedStudiosData = {
         },
         {
             id: 3,
-            title: 'Public Projects Team',
+            title: 'Public Projects',
             description: 'Design and design-build teams, our Public Projects team works on projects with DDC, EDC, PANYNJ, OGS, and other local agencies, ensuring compliance and excellence in public infrastructure.',
             images: [
                 'specialized-studios-3.jpg'
@@ -37,7 +37,7 @@ export const studiosData: SeedStudiosData = {
         },
         {
             id: 4,
-            title: 'High-Rise Residential Team',
+            title: 'High-Rise Residential',
             description: 'Managing larger infrastructure projects, including ground-up buildings and adaptive reuse, our High-Rise Residential and Hotel Team excels in delivering complex and large-scale developments.',
             images: [
                 'specialized-studios-2.jpg'

@@ -69,13 +69,22 @@ export const SideBar = () => {
                     <span className="ml-3 text-ml">Home</span>
                 </Link>
                 <Link 
-                    href="/studio"
-                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/studio' ? 'text-[#e62883]' : ''}`}
+                    href="/profile"
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/profile' ? 'text-[#e62883]' : ''}`}
                 >
                     <FaHelmetSafety 
                         size={ 20 }
                     />
-                    <span className="ml-3 text-ml">Studio</span>
+                    <span className="ml-3 text-ml">Profile</span>
+                </Link>
+                <Link 
+                    href="/expertise"
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/expertise' ? 'text-[#e62883]' : ''}`}
+                >
+                    <FaHelmetSafety 
+                        size={ 20 }
+                    />
+                    <span className="ml-3 text-ml">Expertise</span>
                 </Link>
                 <Link 
                     href="/work"

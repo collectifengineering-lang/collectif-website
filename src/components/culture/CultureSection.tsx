@@ -11,7 +11,7 @@ const CultureSection = () => {
   return (
     <div className={styles.containerCulture}>
       <div className={styles.contentContainerCulture}>
-        {/* Sección del header */}
+        {/* Profile Header */}
         <div className={`grid grid-cols-1 md:grid-cols-2 ${styles.customGap}`}>
           <div className={styles.headerCultureleftBox}>
             <span className={styles.secondaryText}>
@@ -30,9 +30,9 @@ const CultureSection = () => {
           </div>
         </div>
 
-        {/* Contenedor de las dos columnas */}
+        {/* Our Focus Areas */}
         <div className={`grid grid-cols-1 md:grid-cols-2 ${styles.customGap}`}>
-          {/* Primera columna */}
+        {/* First column */}
           <div className={styles.firstColumn}>
             <span>
               What sets us apart? Our unique focus areas reflect our commitment to innovation and
@@ -57,7 +57,7 @@ const CultureSection = () => {
             </span>
           </div>
 
-          {/* Segunda columna */}
+          {/* Second column */}
           {!isMobile && !isTablet ? (          <div className={styles.secondColumn}>
             <div className={styles.secondColumnUpperBox}>
               <Image
@@ -154,7 +154,7 @@ const CultureSection = () => {
       </div>
         <div className={styles.culturePartnerSection}>
           <div className={styles.culturePartnerHeader}>
-            <h2 className={styles.titleCulturePartnerSection}>Notable collaborations, clients and partners</h2>
+            <h2 className={styles.titleCulturePartnerSection}>Notable Collaborations, Clients & Partners</h2>
           </div>
           <InfinitScrollCulture />
         </div>

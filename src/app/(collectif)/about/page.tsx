@@ -9,7 +9,7 @@ const studio = studiosData.studios
 
 const About = () => {
   return (
-    <div className={ styles.container } id='studio'>
+    <div className={ styles.container } id='expertise'>
         <AboutContent 
             dataPrincipalTeam={data}
             studiosData={studio}

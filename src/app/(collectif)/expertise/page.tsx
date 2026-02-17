@@ -1,16 +1,16 @@
 import React from 'react'
 import styles from '@/styles/about.module.css';
-import AboutContent from '@/components/about-background/AboutContent';
+import ExpertiseContent from '@/components/about-background/AboutContent';
 import { teamPrincipalData } from "@/seed/seedTeamPrincipal";
 import { studiosData } from '@/seed/seedStudio';
 
 const data = teamPrincipalData.team
 const studio = studiosData.studios
 
-const Studio = () => {
+const Expertise = () => {
   return (
     <div className={ styles.container }>
-        <AboutContent 
+        <ExpertiseContent 
             dataPrincipalTeam={data}
             studiosData={studio}
         />
@@ -18,4 +18,4 @@ const Studio = () => {
   )
 }
 
-export default Studio
+export default Expertise

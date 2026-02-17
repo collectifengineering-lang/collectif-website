@@ -49,7 +49,8 @@ export const TopMenu = () => {
             <div className="hidden md:block xl:block">
               <div className={styles.firstRowLinkSection}>
                 {/* <Link className={`${roboto.className} ${styles.textLink}`} href="/">Home</Link> */}
-                <Link className={`${roboto.className} ${pathname === '/studio' ? styles.textLinkActive : styles.textLink}`} href="/studio">Studio</Link>
+                <Link className={`${roboto.className} ${pathname === '/profile' ? styles.textLinkActive : styles.textLink}`} href="/profile">Profile</Link>
+                <Link className={`${roboto.className} ${pathname === '/expertise' ? styles.textLinkActive : styles.textLink}`} href="/expertise">Expertise</Link>
                 <Link className={`${roboto.className} ${['/work', '/works'].includes(pathname) ? styles.textLinkActive : styles.textLink}`} href="/work">Work</Link>
                 <Link className={`${roboto.className} ${pathname === '/social' ? styles.textLinkActive : styles.textLink}`} href="/social">Social</Link>
                 <Link className={`${roboto.className} ${pathname === '/contact' ? styles.textLinkActive : styles.textLink}`} href="/contact">Contact</Link>

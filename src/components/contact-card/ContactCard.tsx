@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
+import Image from "next/image";
 import styles from "@/styles/contact.module.css";
 
 const ContactCard = () => {
@@ -13,9 +14,7 @@ const ContactCard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // Spam prevention: honeypot field (should remain empty)
   const [honeypot, setHoneypot] = useState("");
-  // Spam prevention: record when the form was loaded
   const formLoadTime = useRef(Date.now());
 
   const handleChange = (
@@ -60,30 +59,55 @@ const ContactCard = () => {
     <div className={styles.container}>
       <div className={styles.cardContainer}>
         <div className={styles.introSection}>
+          <h1 className={styles.introHeading}>Get in Touch</h1>
           <p className={styles.introText}>
             Whether you are embarking on a new development or renovating an existing space, drop us
-            a line. Let's design the future together.
+            a line.
           </p>
         </div>
 
-        {/* Contact Form Section */}
-        <div className={styles.formSection}>
-          <h2 className={styles.formTitle}>Send Us a Message</h2>
-          <form onSubmit={handleSubmit} className={styles.contactForm}>
-            {/* Honeypot field - hidden from humans, visible to bots */}
-            <div className={styles.honeypotField} aria-hidden="true">
-              <label htmlFor="website">Website</label>
-              <input
-                type="text"
-                id="website"
-                name="website"
-                value={honeypot}
-                onChange={(e) => setHoneypot(e.target.value)}
-                tabIndex={-1}
-                autoComplete="off"
+        <div className={styles.threeColumnLayout}>
+          {/* Column 1: Video */}
+          <div className={styles.videoColumn}>
+            <div className={styles.videoInner}>
+              <Image
+                src="/video/NYCsubway.gif"
+                alt="NYC Subway animation"
+                fill
+                className={styles.videoImage}
+                unoptimized
+                priority
               />
+              <div className={styles.videoOverlay} />
+              <Image
+                src="/video/graffiti.png"
+                alt="graffiti"
+                className={styles.videoGraffiti}
+                width={1200}
+                height={200}
+                unoptimized
+                priority
+              />
+              <h2 className={styles.videoText}>Let&apos;s design the future together!</h2>
             </div>
-            <div className={styles.formRow}>
+          </div>
+
+          {/* Column 2: Contact Form */}
+          <div className={styles.formSection}>
+            <h2 className={styles.formTitle}>Send Us a Message</h2>
+            <form onSubmit={handleSubmit} className={styles.contactForm}>
+              <div className={styles.honeypotField} aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input
+                  type="text"
+                  id="website"
+                  name="website"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
               <div className={styles.formGroup}>
                 <label htmlFor="name" className={styles.formLabel}>
                   Name *
@@ -114,8 +138,6 @@ const ContactCard = () => {
                   placeholder="your@email.com"
                 />
               </div>
-            </div>
-            <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label htmlFor="company" className={styles.formLabel}>
                   Company
@@ -127,7 +149,7 @@ const ContactCard = () => {
                   value={formData.company}
                   onChange={handleChange}
                   className={styles.formInput}
-                  placeholder="Your company (optional)"
+                  placeholder="Company (optional)"
                 />
               </div>
               <div className={styles.formGroup}>
@@ -150,105 +172,107 @@ const ContactCard = () => {
                   <option value="general">General Inquiry</option>
                 </select>
               </div>
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="message" className={styles.formLabel}>
-                Message *
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                rows={6}
-                className={styles.formTextarea}
-                placeholder="Tell us about your project or inquiry..."
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={styles.submitButton}
-            >
-              {isSubmitting ? "Sending..." : "Send Message"}
-            </button>
-            {submitStatus === "success" && (
-              <p className={styles.successMessage}>
-                Thank you! Your message has been sent successfully. We'll get back to you soon.
-              </p>
-            )}
-            {submitStatus === "error" && (
-              <p className={styles.errorMessage}>
-                Something went wrong. Please try again or email us directly at connect@collectif.nyc
-              </p>
-            )}
-          </form>
-        </div>
-        
-        <div className={styles.contactInfoSection}>
-          <div className={styles.contactMethods}>
-            <div className={styles.contactBox}>
-              <span className={styles.contactLabel}>Email</span>
-              <a
-                href="mailto:connect@collectif.nyc"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.contactLink}
+              <div className={styles.formGroup}>
+                <label htmlFor="message" className={styles.formLabel}>
+                  Message *
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  rows={5}
+                  className={styles.formTextarea}
+                  placeholder="Tell us about your project or inquiry..."
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={styles.submitButton}
               >
-                connect@collectif.nyc
-              </a>
-            </div>
-            <div className={styles.contactBox}>
-              <span className={styles.contactLabel}>Phone</span>
-              <a href="tel:+16466100343" className={styles.contactLink}>
-                +1 646.610.0343
-              </a>
-            </div>
-            <div className={styles.contactBox}>
-              <span className={styles.contactLabel}>Social Media</span>
-              <div className={styles.socialMedia}>
+                {isSubmitting ? "Sending..." : "Send Message"}
+              </button>
+              {submitStatus === "success" && (
+                <p className={styles.successMessage}>
+                  Thank you! We&apos;ll get back to you soon.
+                </p>
+              )}
+              {submitStatus === "error" && (
+                <p className={styles.errorMessage}>
+                  Something went wrong. Please try again or email us directly.
+                </p>
+              )}
+            </form>
+          </div>
+
+          {/* Column 3: Contact Info & Offices */}
+          <div className={styles.contactInfoSection}>
+            <div className={styles.contactMethods}>
+              <div className={styles.contactBox}>
+                <span className={styles.contactLabel}>Email</span>
                 <a
-                  href="https://www.linkedin.com/company/collectif-engineering-pllc/"
+                  href="mailto:connect@collectif.nyc"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.contactLink}
                 >
-                  LinkedIn
-                </a>
-                <span className={styles.separator}>|</span>
-                <a
-                  href="https://www.instagram.com/collectifmep/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.contactLink}
-                >
-                  Instagram
+                  connect@collectif.nyc
                 </a>
               </div>
+              <div className={styles.contactBox}>
+                <span className={styles.contactLabel}>Phone</span>
+                <a href="tel:+16466100343" className={styles.contactLink}>
+                  +1 646.610.0343
+                </a>
+              </div>
+              <div className={styles.contactBox}>
+                <span className={styles.contactLabel}>Follow Us</span>
+                <div className={styles.socialMedia}>
+                  <a
+                    href="https://www.linkedin.com/company/collectif-engineering-pllc/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.contactLink}
+                  >
+                    LinkedIn
+                  </a>
+                  <span className={styles.separator}>|</span>
+                  <a
+                    href="https://www.instagram.com/collectifmep/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.contactLink}
+                  >
+                    Instagram
+                  </a>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div className={styles.addressSection}>
-            <div className={styles.addressBox}>
-              <p className={styles.addressTitle}>NEW YORK</p>
-              <p>27 W 20th Street Suite 204</p>
-              <p>New York, NY 10001</p>
-            </div>
-            <div className={styles.addressBox}>
-              <p className={styles.addressTitle}>SAN JUAN</p>
-              <p>1607 Ave. Ponce de Leon STE GME 6</p>
-              <p>San Juan, PR 00909</p>
-            </div>
-            <div className={styles.addressBox}>
-              <p className={styles.addressTitle}>MIAMI</p>
-              <p>701 Brickell Ave Suite 1550</p>
-              <p>Miami, FL 33131</p>
-            </div>
-            <div className={styles.addressBox}>
-              <p className={styles.addressTitle}>NEW JERSEY</p>
-              <p>1585 Springfield Ave Suite 2</p>
-              <p>Maplewood, NJ 07040</p>
+
+            <div className={styles.officesHeading}>Our Offices</div>
+            <div className={styles.addressSection}>
+              <div className={styles.addressBox}>
+                <p className={styles.addressTitle}>New York</p>
+                <p>27 W 20th Street Suite 204</p>
+                <p>New York, NY 10001</p>
+              </div>
+              <div className={styles.addressBox}>
+                <p className={styles.addressTitle}>San Juan</p>
+                <p>1607 Ave. Ponce de Leon STE GME 6</p>
+                <p>San Juan, PR 00909</p>
+              </div>
+              <div className={styles.addressBox}>
+                <p className={styles.addressTitle}>Miami</p>
+                <p>701 Brickell Ave Suite 1550</p>
+                <p>Miami, FL 33131</p>
+              </div>
+              <div className={styles.addressBox}>
+                <p className={styles.addressTitle}>New Jersey</p>
+                <p>1585 Springfield Ave Suite 2</p>
+                <p>Maplewood, NJ 07040</p>
+              </div>
             </div>
           </div>
         </div>

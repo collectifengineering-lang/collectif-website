@@ -54,7 +54,7 @@ const SpecializedStudios = ({studiosData}: Props) => {
     return (
         <div className={styles.container}>
             <div className={styles.titleContainer}>
-                <h1 className={styles.titleText}>Specialized Studios</h1>
+                <h1 className={styles.titleText}>Areas of Expertise</h1>
             </div>
             <div className={`${styles.gridContainer} grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center`}>
                 {studiosData.map((studio, index) => (
