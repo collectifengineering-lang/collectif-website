@@ -16,12 +16,12 @@
   justify-content: center;
   flex-direction: row;
   align-items: center;
-  padding: 40px;
+  padding: var(--page-padding);
 }
 
 .titleHeader {
-  font-size: 1.8rem;
-  font-weight: lighter;
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-light);
   color: var(--color-text);
 }
 
@@ -99,9 +99,9 @@
   }
 
  .textTitleBottomSection {
-    font-size: var(--bg-size);
+    font-size: var(--fs-display);
     color: var(--color-collectif-pink);
-    font-weight: bold;
+    font-weight: var(--fw-bold);
   }
 
   @keyframes flicker {

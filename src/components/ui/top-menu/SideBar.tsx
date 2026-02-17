@@ -61,57 +61,57 @@ export const SideBar = () => {
                 {/* menu */}
                 <Link 
                     href="/"
-                    className={`flex items-center mt-11 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/' ? 'text-[#e62883]' : ''}`}
+                    className={`flex items-center mt-11 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/' ? 'text-[var(--color-collectif-pink)]' : ''}`}
                 >
                     <IoHomeOutline 
                         size={ 20 }
                     />
-                    <span className="ml-3 text-ml">Home</span>
+                    <span className="ml-3 text-base">Home</span>
                 </Link>
                 <Link 
                     href="/profile"
-                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/profile' ? 'text-[#e62883]' : ''}`}
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/profile' ? 'text-[var(--color-collectif-pink)]' : ''}`}
                 >
                     <FaHelmetSafety 
                         size={ 20 }
                     />
-                    <span className="ml-3 text-ml">Profile</span>
+                    <span className="ml-3 text-base">Profile</span>
                 </Link>
                 <Link 
                     href="/expertise"
-                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/expertise' ? 'text-[#e62883]' : ''}`}
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/expertise' ? 'text-[var(--color-collectif-pink)]' : ''}`}
                 >
                     <FaHelmetSafety 
                         size={ 20 }
                     />
-                    <span className="ml-3 text-ml">Expertise</span>
+                    <span className="ml-3 text-base">Expertise</span>
                 </Link>
                 <Link 
                     href="/work"
-                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/work' ? 'text-[#e62883]' : ''}`}
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/work' ? 'text-[var(--color-collectif-pink)]' : ''}`}
                 >
                     <IoBriefcaseOutline 
                         size={ 20 }
                     />
-                    <span className="ml-3 text-ml">Work</span>
+                    <span className="ml-3 text-base">Work</span>
                 </Link>
                 <Link 
                     href="/social"
-                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/social' ? 'text-[#e62883]' : ''}`}
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/social' ? 'text-[var(--color-collectif-pink)]' : ''}`}
                 >
                     <IoShareSocialOutline 
                         size={ 20 }
                     />
-                    <span className="ml-3 text-ml">Social</span>
+                    <span className="ml-3 text-base">Social</span>
                 </Link>
                 <Link 
                     href="/contact"
-                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/contact' ? 'text-[#e62883]' : ''}`}
+                    className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/contact' ? 'text-[var(--color-collectif-pink)]' : ''}`}
                 >
                     <FaRegHandshake 
                         size={ 20 }
                     />
-                    <span className="ml-3 text-ml">Contact</span>
+                    <span className="ml-3 text-base">Contact</span>
                 </Link>
         </nav>
     </div> ) : null

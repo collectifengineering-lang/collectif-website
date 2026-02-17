@@ -1,19 +1,19 @@
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 120px 24px 60px;
+  padding: 120px var(--space-md) var(--space-xl);
   color: var(--color-text);
 }
 
 .title {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
   margin-bottom: 12px;
   color: var(--color-collectif-violet);
 }
 
 .lastUpdated {
-  font-size: 0.9rem;
+  font-size: var(--fs-body-sm);
   color: var(--color-secondary-text);
   margin-bottom: 48px;
 }
@@ -23,14 +23,14 @@
 }
 
 .sectionTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
   margin-bottom: 12px;
   color: var(--color-text);
 }
 
 .text {
-  font-size: 1rem;
+  font-size: var(--fs-body);
   line-height: 1.75;
   color: var(--color-secondary-text);
   margin: 0 0 12px;
@@ -48,10 +48,10 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 100px 16px 40px;
+    padding: 100px var(--page-padding-mobile) var(--page-padding);
   }
 
   .title {
-    font-size: 2rem;
+    font-size: var(--fs-h2);
   }
 }

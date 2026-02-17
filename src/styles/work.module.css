@@ -25,13 +25,13 @@
 
 .backButton {
   background: none;
-  border: 1px solid #ccc;
-  padding: 8px 20px;
-  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  padding: var(--space-xs) 20px;
+  font-size: var(--fs-body);
   cursor: pointer;
   color: var(--color-text);
   transition: all 0.3s ease;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--ls-normal);
 }
 
 .backButton:hover {
@@ -40,10 +40,10 @@
 }
 
 .projectTitle {
-  font-size: 2rem;
+  font-size: var(--fs-h1);
   color: var(--color-collectif-pink);
-  font-weight: normal;
-  letter-spacing: 0.1em;
+  font-weight: var(--fw-regular);
+  letter-spacing: var(--ls-wide);
   margin: 0;
 }
 
@@ -117,13 +117,14 @@
 }
 
 .titlesWork {
-  font-size: 1.5rem;
-  font-weight: normal;
-  letter-spacing: 0.05em;
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-normal);
 }
 
 .descriptionWork {
   margin-top: 20px;
+  font-size: var(--fs-body);
   color: var(--color-secondary-text);
   line-height: 1.6;
 }
@@ -138,21 +139,23 @@
 }
 
 .categoryWork {
-  font-size: 0.85rem;
+  font-size: var(--fs-caption);
   color: var(--color-collectif-pink);
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ls-wide);
   text-transform: uppercase;
+  font-weight: var(--fw-medium);
   margin-top: 4px;
 }
 
 .contentText {
-  font-size: 1rem;
+  font-size: var(--fs-body);
   color: var(--color-secondary-text);
+  line-height: 1.5;
 }
 
 .verticalLine {
   width: 1px;
-  background-color: var(--color-smokedGrey-text);
+  background-color: var(--color-border);
   margin: 5px;
 }
 
@@ -163,11 +166,11 @@
 }
 
 .thirdSectionTitle {
-  font-size: 1.5rem;
-  font-weight: normal;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
   color: var(--color-collectif-pink);
-  margin-bottom: 16px;
+  margin-bottom: var(--space-sm);
 }
 
 .cardContainer {
@@ -189,9 +192,9 @@
 }
 
 .cardTitle {
-  font-size: 0.9rem;
-  font-weight: normal;
-  letter-spacing: 0.03em;
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-tight);
   text-align: center;
 }
 
@@ -231,11 +234,11 @@
 
   .backButton {
     padding: 6px 14px;
-    font-size: 0.9rem;
+    font-size: var(--fs-body-sm);
   }
 
   .projectTitle {
-    font-size: 1.5rem;
+    font-size: var(--fs-h2);
   }
 
   .secondSection {
@@ -268,14 +271,14 @@
   }
 
   .projectTitle {
-    font-size: 1.2rem;
+    font-size: var(--fs-h3);
   }
 
   .titlesWork {
-    font-size: 1.2rem;
+    font-size: var(--fs-body);
   }
 
   .thirdSectionTitle {
-    font-size: 1.2rem;
+    font-size: var(--fs-body);
   }
 }

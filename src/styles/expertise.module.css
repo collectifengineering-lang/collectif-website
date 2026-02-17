@@ -1,0 +1,268 @@
+.container {
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* ── Focus Areas Wrapper ── */
+.focusWrapper {
+    position: relative;
+    padding: 0 60px;
+    margin-top: 80px;
+    margin-bottom: 120px;
+}
+
+/* ── Pink Overlay Box ── */
+.pinkOverlay {
+    position: absolute;
+    bottom: 0;
+    left: 60px;
+    transform: translateY(50%);
+    z-index: 2;
+    background-color: rgba(230, 40, 131, 0.85);
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 840px;
+}
+
+.heroTitle {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-semibold);
+    line-height: 1.1;
+    letter-spacing: var(--ls-normal);
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.heroDescription {
+    font-size: var(--fs-body-lg);
+    font-weight: var(--fw-medium);
+    line-height: 1.5;
+    color: #fff;
+}
+
+/* ── Focus Areas Grid ── */
+.focusGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+}
+
+.focusCard {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 5;
+    cursor: default;
+}
+
+.focusCardImage {
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.focusCard:hover .focusCardImage {
+    transform: scale(1.04);
+}
+
+.focusCardOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.65) 0%,
+        rgba(0, 0, 0, 0.2) 45%,
+        rgba(0, 0, 0, 0.02) 100%
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 24px 20px;
+    z-index: 1;
+}
+
+.focusCardTitle {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
+    color: #fff;
+    letter-spacing: var(--ls-normal);
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+.focusCardSubtitle {
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-light);
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 6px;
+    line-height: 1.45;
+}
+
+/* ── Services & Expertise Section ── */
+.servicesSection {
+    width: 100%;
+    padding: 80px 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 60px;
+}
+
+.servicesColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+
+.columnTitle {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-normal);
+    text-transform: uppercase;
+    color: var(--color-text);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.columnList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.columnListItem {
+    font-size: var(--fs-body-lg);
+    font-weight: var(--fw-regular);
+    color: var(--color-secondary-text);
+    line-height: 1.5;
+    transition: color 0.2s ease;
+}
+
+.columnListItem:hover {
+    color: var(--color-text);
+}
+
+.servicesDescription {
+    font-size: var(--fs-body-lg);
+    font-weight: var(--fw-regular);
+    line-height: 1.6;
+    color: var(--color-text);
+}
+
+/* ── Divider ── */
+.divider {
+    width: calc(100% - 120px);
+    margin: 0 60px;
+    height: 1px;
+    background-color: var(--color-border);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .focusWrapper {
+        padding: 0 40px;
+    }
+
+    .focusWrapper {
+        margin-top: 60px;
+    }
+
+    .pinkOverlay {
+        left: 40px;
+        padding: 24px 32px;
+        max-width: 720px;
+    }
+
+    .focusCardOverlay {
+        padding: 20px 16px;
+    }
+
+    .servicesSection {
+        padding: 60px 40px;
+        gap: 48px;
+    }
+
+    .divider {
+        width: calc(100% - 80px);
+        margin: 0 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .focusWrapper {
+        padding: 0 24px;
+        margin-top: 48px;
+    }
+
+    .pinkOverlay {
+        left: 24px;
+        padding: 20px 24px;
+        max-width: 560px;
+        gap: 10px;
+    }
+
+    .focusGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .focusCard {
+        aspect-ratio: 3 / 5;
+    }
+
+    .focusCardTitle {
+        font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+    }
+
+    .focusCardSubtitle {
+        font-size: clamp(0.7rem, 2vw, 0.85rem);
+    }
+
+    .servicesSection {
+        padding: 48px 24px;
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .divider {
+        width: calc(100% - 48px);
+        margin: 0 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .focusWrapper {
+        padding: 0 16px;
+        margin-top: 36px;
+    }
+
+    .pinkOverlay {
+        left: 16px;
+        padding: 16px 20px;
+        max-width: 440px;
+        gap: 8px;
+    }
+
+    .focusGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .focusCard {
+        aspect-ratio: 3 / 4;
+    }
+
+    .focusCardOverlay {
+        padding: 20px 20px;
+    }
+
+    .servicesSection {
+        padding: 36px 16px;
+    }
+
+    .divider {
+        width: calc(100% - 32px);
+        margin: 0 16px;
+    }
+}

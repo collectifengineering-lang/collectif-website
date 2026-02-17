@@ -1,32 +1,55 @@
 import styles from '@/styles/about.module.css';
-import { Studio, Team } from '@/interfaces'
+import { Team } from '@/interfaces'
 import CardAboutTeam from './CardAboutTeam';
-import SpecializedStudios from './SpecializedStudios';
 import StudioMainCard from './StudioMainCard';
+import Image from 'next/image';
 
 interface Props {
     dataPrincipalTeam: Team[],
-    studiosData: Studio[]
 }
 
-const AboutContent = ({dataPrincipalTeam, studiosData }: Props) => {
+const AboutContent = ({dataPrincipalTeam }: Props) => {
   return (
     <div className={styles.container}>
-        <StudioMainCard/>
-        <SpecializedStudios studiosData={studiosData} />
-        <div className={`${styles.thirdSection} ${'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-2 gap-4'}`}>
-          <div className={styles.thirdSectionText}>
+        <div className={styles.ownerAndBannerRow}>
+            <div className={styles.ownerColumn}>
+                <StudioMainCard/>
+            </div>
+            <div className={styles.bannerColumn}>
+                <div className={styles.bannerImageWrapper}>
+                    <Image
+                        src="/about/profile-banner.png"
+                        alt="Collectif Engineering"
+                        width={900}
+                        height={500}
+                        className={styles.bannerImage}
+                        priority
+                    />
+                    <h1 className={styles.aboutUsText}>ABOUT<br/>US</h1>
+                    <div className={styles.missionOverlay}>
+                        <h2 className={styles.missionLabel}>OUR MISSION</h2>
+                        <p className={styles.missionText}>
+                            TO COLLECTIVELY SOLVE HUMANITY&#39;S ENGINEERING CHALLENGES AND ELEVATE OUR WELL-BEING IN THE BUILT ENVIRONMENT.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div className={styles.leadershipRow}>
+          <div className={styles.leadershipTextColumn}>
             <h1 className={styles.titleText}>
-                Our Leadership
+                EXPERT LEADERSHIP
             </h1>
-            <p> 
-                Our three Partners possess decades of combined experience in project engineering, management, and all phases of engineering services, including
-                procurement, commissioning, utility coordination, and project closeout.   Our team is enhanced by staff with construction experience, which streamlines the design process by emphasizing value-engineered designs as they are
-                developed. We have a proven track record of successful collaboration with design-build teams, ensuring seamless project execution.
+            <p className={styles.leadershipDescription}> 
+                Our leadership brings years of hands-on technical expertise,
+                problem-solving and a deep understanding of how design
+                impacts constructability, schedules, and budgets.
             </p>
           </div>
+          <div className={styles.leadershipCardsColumn}>
+            <CardAboutTeam selectedTeams={dataPrincipalTeam}/>
+          </div>
         </div>
-        <CardAboutTeam selectedTeams={dataPrincipalTeam}/>
     </div>
   );
 };

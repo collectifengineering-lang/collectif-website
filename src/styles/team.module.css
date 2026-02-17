@@ -22,7 +22,8 @@
 }
 
 .nameText {
-    font-size: 1.2rem;
+    font-size: var(--fs-body);
+    font-weight: var(--fw-medium);
 }
 
 .dropdown__check {
@@ -137,7 +138,7 @@
 }
 
 .textInfintScroll {
-    font-size: 5rem;
+    font-size: var(--fs-display);
 }
 
 @keyframes scrollLeft {
@@ -147,7 +148,7 @@
 }
 
 .line {
-border-top: 1px solid #ebeaea;
+border-top: 1px solid var(--color-border);
 }
 
 .textContainer__dropdown__li1 {
@@ -205,7 +206,7 @@ border-top: 1px solid #ebeaea;
 
 @media (max-width: 700px) {
     .nameText {
-        font-size: 0.8rem;
+        font-size: var(--fs-caption);
     }
     .dropdown__content1 {
         width: 60%;
@@ -221,7 +222,7 @@ border-top: 1px solid #ebeaea;
     }
 
     .textContainer__dropdown__li1 {
-        font-size: 0.70rem;
+        font-size: var(--fs-xs);
         width: 80%;
     }
     .dropdown__dropdown__li1 {

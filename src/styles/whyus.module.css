@@ -22,11 +22,11 @@
 }
 
 .mainTextSection {
-    font-size: 5rem;
+    font-size: var(--fs-display);
 }
 
 .line {
-    border-top: 2px solid #ccc;
+    border-top: 2px solid var(--color-border);
   }
 
 .stepContainer {
@@ -36,20 +36,21 @@
 }
 
 .textStepTitle {
-    font-size: 1rem;
-    color: var(--color-secondary-text)
+    font-size: var(--fs-body);
+    color: var(--color-secondary-text);
 }
 
 .texTitle {
-    font-size: 1.4rem;
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
 }
 
-@media (max-width: 820) {
+@media (max-width: 820px) {
     .mainTextSection {
         font-size: 3.5rem;
     }
 }
-@media (max-width: 480) {
+@media (max-width: 480px) {
     .mainTextSection {
         font-size: 2.5rem;
     }

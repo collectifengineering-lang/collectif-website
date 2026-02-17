@@ -1,4 +1,11 @@
 .showMore {
-  font-size: 1.3rem;
-  font-weight: 200; 
+  font-size: var(--fs-body);
+  font-weight: var(--fw-light);
+  letter-spacing: var(--ls-normal);
+  color: var(--color-secondary-text);
+  transition: color 0.3s ease;
+}
+
+.showMore:hover {
+  color: var(--color-collectif-pink);
 }

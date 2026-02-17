@@ -17,10 +17,10 @@
 }
 
 .staticHeader {
-    font-size: 5rem;
+    font-size: var(--fs-display);
     color: var(--color-collectif-pink);
     margin: 0;
-    font-weight: normal;
+    font-weight: var(--fw-regular);
 }
 
 .contentContainer {

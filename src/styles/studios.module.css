@@ -36,13 +36,14 @@
 }
 
 .titleText {
-    font-size: 1.8rem;
-    font-weight: lighter;
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-light);
 }
 
 .title {
     color: rgb(255, 255, 255);
-    font-size: 1.4rem;
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-medium);
     position: relative;
 }
 

@@ -4,8 +4,8 @@
 }
 
 .secondaryText {
-    font-size: 1.8rem;
-    font-weight: lighter;
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-light);
 }
 
 @supports (background-clip: text) or (-webkit-background-clip: text) {
@@ -146,7 +146,9 @@
 }
 
 .titleCulturePartnerSection {
-  font-size: 1.8rem;
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-normal);
 }
 
 .stickyHeader {
@@ -163,10 +165,10 @@
 }
 
 .staticHeader {
-    font-size: 5rem;
+    font-size: var(--fs-display);
     color: var(--color-collectif-pink);
     margin: 0;
-    font-weight: normal;
+    font-weight: var(--fw-regular);
 }
 
 .customGap {

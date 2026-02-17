@@ -71,18 +71,18 @@
 }
 
 .firstText { 
-    font-size: 3.1rem;
-    font-weight: lighter;
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    font-weight: var(--fw-light);
 }
 
 .secondaryText {
-    font-size: 3.1rem;
-    font-weight: lighter;
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    font-weight: var(--fw-light);
 }
 
 .thirdText {
-    font-size: 3.1rem;
-    font-weight: lighter;
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    font-weight: var(--fw-light);
 }
 
 .svg {

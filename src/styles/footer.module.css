@@ -36,8 +36,9 @@
 .footerLink {
   color: var(--color-text);
   text-decoration: none;
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
+  font-size: var(--fs-caption);
+  letter-spacing: var(--ls-normal);
+  font-weight: var(--fw-regular);
   transition: color 0.3s ease;
 }
 
@@ -54,7 +55,8 @@
 .socialLink {
   color: var(--color-collectif-pink);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-regular);
   transition: color 0.3s ease;
 }
 
@@ -64,7 +66,7 @@
 
 .separator {
   color: var(--color-smokedGrey-text);
-  font-size: 0.8rem;
+  font-size: var(--fs-caption);
 }
 
 .footerLegal {
@@ -76,7 +78,7 @@
 .legalLink {
   color: var(--color-text);
   text-decoration: none;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   transition: color 0.3s ease;
   opacity: 0.5;
 }
@@ -89,7 +91,7 @@
 .footerCopyright {
   text-align: center;
   color: var(--color-text);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   opacity: 0.5;
 }
 

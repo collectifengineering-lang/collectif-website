@@ -12,7 +12,7 @@ interface Props {
 const CardAboutTeam = ({ selectedTeams }: Props) => {
   return (
       <div className={styles.container}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 justify-items-center">
         {
             selectedTeams.map((data) => (
             <div className={styles.cardContainer} key={data.id}>
@@ -26,30 +26,28 @@ const CardAboutTeam = ({ selectedTeams }: Props) => {
                     />
                 </ div>
                 <div className={styles.cardHeader}>
-                        <div className={styles.cardTitle}>
-                            <div className={styles.cardNameSurnameTitle}>
-                                <h1 className={styles.name}>{data.name}</h1>
-                                <h1 className={styles.surname}>{data.surname}</h1>
-                            </div>
-                            <div className={styles.socialLinks}>
-                                <a
-                                    href={`${data.linkedin}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <FaLinkedinIn size={24} />
-                                </a>
-                                <a
-                                    href={`mailto:${data.email}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <IoMailOutline size={24} />
-                                </a>
-                            </div>
+                    <div className={styles.cardNameSurnameTitle}>
+                        <h1 className={styles.name}>{data.name}</h1>
+                        <h1 className={styles.surname}>{data.surname}</h1>
+                    </div>
+                    <div className={styles.professionRow}>
+                        <h3 className={styles.profession}>{data.profession}</h3>
+                        <div className={styles.socialLinks}>
+                            <a
+                                href={`${data.linkedin}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <FaLinkedinIn size={16} />
+                            </a>
+                            <a
+                                href={`mailto:${data.email}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <IoMailOutline size={16} />
+                            </a>
                         </div>
-                    <div className={styles.professionTitle}>
-                            <h3 className={styles.profession}>{data.profession}</h3>
                     </div>
                 </div>
                 <p className={styles.cardDescription}>{data.description}</p>

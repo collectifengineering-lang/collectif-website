@@ -26,26 +26,72 @@ html, body {
 }
 
 :root {
+  /* ── Brand Colors ── */
   --color-main-background:  rgb(254, 249, 255);
-  --color-bg1: rgb(254, 249, 255);  /* Color de fondo principal */
-  --color-bg2: rgb(0, 255, 255);    /* Color de fondo secundario */
+  --color-bg1: rgb(254, 249, 255);
+  --color-bg2: rgb(0, 255, 255);
   --color-bg3: rgb(241, 241, 241);
-  --color-text: rgb(20, 20, 20);    /* Color de texto */
-  --color1: 230, 40, 131;            
-  --color2: 95, 255, 161;             
-  --color3: 95, 255, 161;
-  --color4: 230, 40, 131; 
-  --color5: 95, 255, 161; 
-  --color6: 230, 40, 131; 
-  --color-interactive: 95, 255, 161; /* Color para elementos interactivos */
-  --circle-size: 80%;              /* Tamaño relativo de un círculo */
-  --blending: hard-light;          /* Modo de mezcla para efectos de color */
-  --bg-size: 300%;
-  --color-collectif-lightGreen: #5FC2A1;
-  --color-collectif-pink: #e62883;
-  --color-collectif-violet: #755BA5;
+  --color-text: rgb(20, 20, 20);
   --color-secondary-text: rgb(114, 114, 114);
+  --color-collectif-pink: #e62883;
+  --color-collectif-lightGreen: #5FC2A1;
+  --color-collectif-green-accent: #20DFA7;
+  --color-collectif-violet: #755BA5;
   --color-smokedGrey-text: #D9D9D9;
+  --color-border: #e0e0e0;
+
+  /* ── Gradient Animation Colors ── */
+  --color1: 230, 40, 131;
+  --color2: 95, 255, 161;
+  --color3: 95, 255, 161;
+  --color4: 230, 40, 131;
+  --color5: 95, 255, 161;
+  --color6: 230, 40, 131;
+  --color-interactive: 95, 255, 161;
+  --circle-size: 80%;
+  --blending: hard-light;
+  --bg-size: 300%;
+
+  /* ── Typography Scale ── */
+  --fs-display: clamp(3rem, 5vw, 5rem);
+  --fs-h1: clamp(1.75rem, 2.5vw, 2.25rem);
+  --fs-h2: clamp(1.5rem, 2vw, 1.75rem);
+  --fs-h3: clamp(1.15rem, 1.5vw, 1.35rem);
+  --fs-body-lg: clamp(1rem, 1.2vw, 1.15rem);
+  --fs-body: 1rem;
+  --fs-body-sm: 0.9rem;
+  --fs-caption: 0.85rem;
+  --fs-xs: 0.75rem;
+
+  /* ── Font Weights ── */
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ── Letter Spacing ── */
+  --ls-tight: 0.02em;
+  --ls-normal: 0.05em;
+  --ls-wide: 0.1em;
+
+  /* ── Spacing ── */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 40px;
+  --space-xl: 60px;
+
+  /* ── Border Radius ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 30px;
+
+  /* ── Page Container ── */
+  --page-padding: var(--space-lg);
+  --page-padding-mobile: var(--space-sm);
+
   --custom-font-size: 5rem;
 }
 

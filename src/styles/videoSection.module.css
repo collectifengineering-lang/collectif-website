@@ -3,7 +3,7 @@
   height: 65vh;
   position: relative;
   overflow: hidden;
-  border-radius: 30px;
+  border-radius: var(--radius-xl);
 }
 
 .content {
@@ -44,7 +44,8 @@
   position: absolute;
   z-index: 4;
   color: white;
-  font-size: 5rem;
+  font-size: var(--fs-display);
+  font-weight: var(--fw-bold);
   text-align: center;
   display: flex;
   justify-content: center;

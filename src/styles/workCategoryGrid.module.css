@@ -72,12 +72,12 @@
 
 .categoryName {
     color: white;
-    font-size: 3.5rem;
-    letter-spacing: 0.15em;
+    font-size: var(--fs-display);
+    letter-spacing: var(--ls-wide);
     text-transform: uppercase;
     text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
     transition: letter-spacing 0.4s ease, transform 0.4s ease;
-    font-weight: normal;
+    font-weight: var(--fw-regular);
 }
 
 .tile:hover .categoryName {
@@ -109,8 +109,8 @@
     }
 
     .categoryName {
-        font-size: 2rem;
-        letter-spacing: 0.1em;
+        font-size: var(--fs-h1);
+        letter-spacing: var(--ls-wide);
     }
 
     .tile:hover .categoryName {
@@ -144,6 +144,6 @@
     }
 
     .categoryName {
-        font-size: 1.6rem;
+        font-size: var(--fs-h2);
     }
 }
