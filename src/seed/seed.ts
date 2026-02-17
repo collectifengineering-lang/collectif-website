@@ -293,25 +293,6 @@ export const portfolioData: SeedData = {
             ]
         },
         {
-            id: 15,
-            title: "Central Queen Single-Family Residential",
-            client: "Private",
-            description: "COLLECTIF led the design of MEP-FP systems for the renovation of this single-family house in Central Queens.",
-            category: "Residential",
-            photoCredit: "n/a",
-            architect: "Colberg Architecture",
-            location: "Queens, New York",
-            article: "",
-            images:
-            [
-                "central-queens-residence-1.jpeg",
-                "central-queens-residence-2.jpeg",
-                "central-queens-residence-3.jpeg",
-                "central-queens-residence-4.jpeg",
-                "central-queens-residence-5.jpeg",
-            ]
-        },
-        {
             id: 16,
             title: "Greenwich Village Single-Family Residential",
             client: "Private",
