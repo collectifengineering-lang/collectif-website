@@ -145,16 +145,10 @@ export const portfolioData: SeedData = {
             article: "https://www.entrepreneur.com/growing-a-business/popup-bagels-secret-recipe-for-viral-success-in-nyc-and/481381",
             images:
             [
-                "PopupBagels-1.jpg",
-                "PopupBagels-2.jpg",
-                "PopupBagels-3.jpg",
-                "PopupBagels-4.jpg",
-                "PopupBagels-5.jpg",
-                "PopupBagels-6.jpg",
+                "unsq1.jpg",
                 "popup-2.jpg",
                 "ues.heic.jpg",
                 "ues3.jpg",
-                "unsq1.jpg",
                 "unsq2.jpg",
             ]
         },
