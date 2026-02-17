@@ -71,8 +71,8 @@ export const portfolioData: SeedData = {
         },
         {
             id: 36,
-            title: "Lore",
-            client: "",
+            title: "Lore Bathing Club",
+            client: "Lore",
             description: "COLLECTIF designed the MEP systems for a premium wellness location, supporting exceptional comfort and energy performance. ",
             category: "Wellness",
             photoCredit: "Sean Davidson / Lore Bathing Club",
@@ -135,9 +135,9 @@ export const portfolioData: SeedData = {
         },
         {
             id: 5,
-            title: "Popup Bagels - NY",
+            title: "Popup Bagels",
             client: "Popup Bagels",
-            description: "COLLECTIF led the MEP design for the conversion of multiple existing retail spaces across New York City, with key locations in the Upper East Side, Upper West Side, and Union Square. Adapting these spaces demanded robust, highly specialized mechanical, electrical, and plumbing infrastructure tailored to support the heavy utility loads of fast, continuous, and efficient on-site daily bagel production.",
+            description: "COLLECTIF designed the MEP systems of 2 existing retail spaces, one on the Upper West Side and one on the Upper East Side. The design required a robust MEP system to support fast, continuous, and efficient on-site daily bagel production.",
             category: "Commercial",
             photoCredit: "n/a",
             architect: "Ideal Consulting Group",
