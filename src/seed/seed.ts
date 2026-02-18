@@ -153,11 +153,6 @@ export const portfolioData: SeedData = {
                 "ues.heic.jpg",
                 "ues3.jpg",
                 "unsq2.jpg",
-                "popup-2.jpg",
-                "ues.heic.jpg",
-                "ues3.jpg",
-                "unsq1.jpg",
-                "unsq2.jpg",
             ]
         },
         {
