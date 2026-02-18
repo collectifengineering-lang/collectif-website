@@ -124,13 +124,8 @@ export const portfolioData: SeedData = {
             images:
             [
                 "ElanArtists-1.jpg",
-                "ElanArtists-2.jpg",
                 "ElanArtists-3.jpg",
-                "ElanArtists-4.jpg",
-                "ElanArtists-5.jpg",
-                "ElanArtists-6.jpg",
                 "ElanArtists-7.jpg",
-                "ElanArtists-8.jpg",
                 "ElanArtists-9.jpg",
                 "ElanArtists-10.jpg",
                 "ElanArtists-11.jpg",
