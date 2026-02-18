@@ -124,8 +124,13 @@ export const portfolioData: SeedData = {
             images:
             [
                 "ElanArtists-1.jpg",
+                "ElanArtists-2.jpg",
                 "ElanArtists-3.jpg",
+                "ElanArtists-4.jpg",
+                "ElanArtists-5.jpg",
+                "ElanArtists-6.jpg",
                 "ElanArtists-7.jpg",
+                "ElanArtists-8.jpg",
                 "ElanArtists-9.jpg",
                 "ElanArtists-10.jpg",
                 "ElanArtists-11.jpg",
@@ -145,7 +150,13 @@ export const portfolioData: SeedData = {
             [
                 "unsq1.jpg",
                 "popup-2.jpg",
+                "ues.heic.jpg",
                 "ues3.jpg",
+                "unsq2.jpg",
+                "popup-2.jpg",
+                "ues.heic.jpg",
+                "ues3.jpg",
+                "unsq1.jpg",
                 "unsq2.jpg",
             ]
         },
@@ -380,6 +391,11 @@ export const portfolioData: SeedData = {
                 "nevelhaus-3.jpg",
                 "nevelhaus-4.jpg",
                 "nevelhaus-5.jpg",
+                "bathroom.jpg",
+                "kitchen.jpg",
+                "living-room.jpg",
+                "nevelhaus.jpg",
+                "nevelhaus2.jpg",
             ]
         },
         {
