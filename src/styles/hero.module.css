@@ -288,6 +288,34 @@
     .firstText, .secondaryText, .thirdText {
         font-size: 2rem;
     }
+
+    /* On mobile, the goo SVG filter creates a hard seam where blobs don't
+       overlap. Replace it with a plain blur so gradients blend smoothly. */
+    .gradientContainer {
+        filter: blur(45px);
+    }
+
+    /* Reposition blobs to spread evenly across the narrower/taller mobile
+       viewport instead of using large rem offsets that push them off-screen. */
+    .g3 {
+        top: calc(50% - var(--circle-size) / 2 - 10rem);
+        left: calc(50% - var(--circle-size) / 2 - 15%);
+    }
+
+    .g4 {
+        top: calc(50% - var(--circle-size) / 2 - 2rem);
+        left: calc(50% - var(--circle-size) / 2 - 20%);
+    }
+
+    .g5 {
+        top: calc(50% - var(--circle-size) / 2 + 5rem);
+        left: calc(50% - var(--circle-size) / 2 + 15%);
+    }
+
+    .g6 {
+        top: calc(50% - var(--circle-size) / 2 + 10rem);
+        left: calc(50% - var(--circle-size) / 2 + 15%);
+    }
 }
 
 /* Tamaño mediano (md) */
