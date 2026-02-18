@@ -588,7 +588,7 @@ export const portfolioData: SeedData = {
             description: "MEP Engineering Design for the conversion of a three-family residential unit to a two-family residential unit in Brooklyn, NY. ",
             category: "Residential",
             photoCredit: "©Jack Lovel",
-            architect: "General Store Development",
+            architect: "Colberg Architecture",
             location: "Brooklyn, New York",
             article: "",
             images:
