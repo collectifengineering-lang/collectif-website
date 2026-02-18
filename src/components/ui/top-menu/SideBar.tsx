@@ -6,7 +6,7 @@ import { useUIStore } from "@/store";
 import { IoHomeOutline, IoBriefcaseOutline, IoShareSocialOutline } from "react-icons/io5"
 // import { BsPersonGear } from "react-icons/bs";
 import { FaRegHandshake } from "react-icons/fa";
-import { FaHelmetSafety } from "react-icons/fa6";
+import { FaHelmetSafety, FaGears } from "react-icons/fa6";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 
@@ -81,7 +81,7 @@ export const SideBar = () => {
                     href="/expertise"
                     className={`flex items-center mt-8 p-2 hover:bg-gray-100 rounded transition-all ${pathname === '/expertise' ? 'text-[var(--color-collectif-pink)]' : ''}`}
                 >
-                    <FaHelmetSafety 
+                    <FaGears 
                         size={ 20 }
                     />
                     <span className="ml-3 text-base">Expertise</span>
