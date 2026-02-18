@@ -124,8 +124,13 @@ export const portfolioData: SeedData = {
             images:
             [
                 "ElanArtists-1.jpg",
+                "ElanArtists-2.jpg",
                 "ElanArtists-3.jpg",
+                "ElanArtists-4.jpg",
+                "ElanArtists-5.jpg",
+                "ElanArtists-6.jpg",
                 "ElanArtists-7.jpg",
+                "ElanArtists-8.jpg",
                 "ElanArtists-9.jpg",
                 "ElanArtists-10.jpg",
                 "ElanArtists-11.jpg",
@@ -145,7 +150,13 @@ export const portfolioData: SeedData = {
             [
                 "unsq1.jpg",
                 "popup-2.jpg",
+                "ues.heic.jpg",
                 "ues3.jpg",
+                "unsq2.jpg",
+                "popup-2.jpg",
+                "ues.heic.jpg",
+                "ues3.jpg",
+                "unsq1.jpg",
                 "unsq2.jpg",
             ]
         },
@@ -375,12 +386,16 @@ export const portfolioData: SeedData = {
             article: "https://www.housebeautiful.com/design-inspiration/house-tours/a62736211/mimi-and-hill-stone-ridge-new-york-home-tour/",
             images:
             [
-    
-                "nevelhaus.jpg",
-                "nevelhaus2.jpg",
+                "nevelhaus-1.jpg",
+                "nevelhaus-2.jpg",
+                "nevelhaus-3.jpg",
+                "nevelhaus-4.jpg",
+                "nevelhaus-5.jpg",
                 "bathroom.jpg",
                 "kitchen.jpg",
                 "living-room.jpg",
+                "nevelhaus.jpg",
+                "nevelhaus2.jpg",
             ]
         },
         {
@@ -414,22 +429,6 @@ export const portfolioData: SeedData = {
                 "amity-17.jpg",
                 "amity-18.jpg",
                 "amity-1.jpg",
-            ]
-        },
-        {
-            id: 24,
-            title: "Separate Together Single-Family Residential",
-            client: "Private",
-            description: "COLLECTIF led the MEP-FP design and filing services for a renovated and new, 6,631 GSF, two story with attic, single family residential building in Queens, NY. A high efficiency HVAC VRF system provides the air conditioning throughout the existing house and new addition. New fireplace and incoming domestic water services.",
-            category: "Residential",
-            photoCredit: "The Up Studio",
-            architect: "The Up Studio",
-            location: "Queens, New York",
-            article: "",
-            images:
-            [
-                "separate-together-single-family.jpg",
-                "separate-together-single-family2.jpg",
             ]
         },
         {
