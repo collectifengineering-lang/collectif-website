@@ -386,16 +386,12 @@ export const portfolioData: SeedData = {
             article: "https://www.housebeautiful.com/design-inspiration/house-tours/a62736211/mimi-and-hill-stone-ridge-new-york-home-tour/",
             images:
             [
-                "nevelhaus-1.jpg",
-                "nevelhaus-2.jpg",
-                "nevelhaus-3.jpg",
-                "nevelhaus-4.jpg",
-                "nevelhaus-5.jpg",
+    
+                "nevelhaus.jpg",
+                "nevelhaus2.jpg",
                 "bathroom.jpg",
                 "kitchen.jpg",
                 "living-room.jpg",
-                "nevelhaus.jpg",
-                "nevelhaus2.jpg",
             ]
         },
         {
