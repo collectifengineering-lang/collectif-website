@@ -197,7 +197,7 @@ export const portfolioData: SeedData = {
         },
         {
             id: 9,
-            title: "10 Eyck Street Production Studio",
+            title: "Eyck Street Production Studio",
             client: "Chemistry Creative",
             description: "COLLECTIF led the mechanical design for a highly versatile 2,200 square foot production studio space in Williamsburg, Brooklyn.",
             category: "Commercial",
