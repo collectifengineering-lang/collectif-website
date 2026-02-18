@@ -16,6 +16,7 @@
 .ownerColumn {
     flex: 0 0 38%;
     min-width: 0;
+    order: -1;
 }
 
 .bannerColumn {
@@ -219,37 +220,28 @@
     }
 
 
-@media (max-width: 640px) {
-    .thirdSection {
-        padding: 0px;
-    }
-
+@media (max-width: 768px) {
     .container {
         width: 100%;
         height: 100%;
-        padding: var(--page-padding-mobile);
-    }
-
-    .staticHeader {
-        font-size: 3rem;
-    }
-
-    .stickyHeader {
-        height: 120px;
+        padding: 70px var(--page-padding-mobile) var(--page-padding-mobile);
     }
 
     .ownerAndBannerRow {
         flex-direction: column;
     }
 
-    .ownerColumn {
-        flex: none;
-        width: 100%;
-    }
-
     .bannerColumn {
         flex: none;
         width: 100%;
+        margin-top: 0;
+        margin-bottom: 120px;
+    }
+
+    .ownerColumn {
+        flex: none;
+        width: 100%;
+        order: 0;
     }
 
     .leadershipRow {
@@ -263,7 +255,26 @@
     }
 
     .missionOverlay {
-        width: 70%;
+        width: 95%;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%) translateY(85%);
+        padding: 4% 6%;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 640px) {
+    .thirdSection {
+        padding: 0px;
+    }
+
+    .staticHeader {
+        font-size: 3rem;
+    }
+
+    .stickyHeader {
+        height: 120px;
     }
 }
   

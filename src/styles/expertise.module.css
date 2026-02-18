@@ -194,7 +194,7 @@
 @media (max-width: 768px) {
     .focusWrapper {
         padding: 0 24px;
-        margin-top: 48px;
+        margin-top: 70px;
     }
 
     .pinkOverlay {
@@ -235,7 +235,7 @@
 @media (max-width: 480px) {
     .focusWrapper {
         padding: 0 16px;
-        margin-top: 36px;
+        margin-top: 70px;
     }
 
     .pinkOverlay {

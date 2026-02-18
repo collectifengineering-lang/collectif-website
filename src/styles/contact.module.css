@@ -385,7 +385,7 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 20px 15px;
+    padding: 70px 15px 20px;
   }
 
   .cardContainer {

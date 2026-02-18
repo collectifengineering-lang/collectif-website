@@ -12,9 +12,6 @@ const AboutContent = ({dataPrincipalTeam }: Props) => {
   return (
     <div className={styles.container}>
         <div className={styles.ownerAndBannerRow}>
-            <div className={styles.ownerColumn}>
-                <StudioMainCard/>
-            </div>
             <div className={styles.bannerColumn}>
                 <div className={styles.bannerImageWrapper}>
                     <Image
@@ -33,6 +30,9 @@ const AboutContent = ({dataPrincipalTeam }: Props) => {
                         </p>
                     </div>
                 </div>
+            </div>
+            <div className={styles.ownerColumn}>
+                <StudioMainCard/>
             </div>
         </div>
         <div className={styles.leadershipRow}>

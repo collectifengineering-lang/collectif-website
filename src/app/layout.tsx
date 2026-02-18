@@ -1,10 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script"; // Importar next/script
 import { lato } from "@/config/fonts";
 import "./globals.css";
 import { TopMenu } from "@/components/ui/top-menu/TopMenu";
 import { SideBar } from "@/components/ui/top-menu/SideBar";
 import { ClientScreensaverProvider } from "@/components/screensaver/ClientScreensaverProvider";
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: "Collectif Engineering",

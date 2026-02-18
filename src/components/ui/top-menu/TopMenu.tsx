@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from "react";
 import { roboto } from "@/config/fonts"
 import { useUIStore } from "@/store"
 import Link from "next/link"
@@ -13,6 +14,9 @@ export const TopMenu = () => {
   const isSideMenuOpen = useUIStore(state => state.isSideMenuOpen);
   const openSideMenu = useUIStore(state => state.openSideMenu);
   const closeSideMenu = useUIStore(state => state.closeSideMenu);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const toggleMenu = () => {
     if (isSideMenuOpen) {
@@ -44,11 +48,10 @@ export const TopMenu = () => {
         </div>
 
         {/* Center Menu */}
-        {!isSideMenuOpen && (
+        {(!mounted || !isSideMenuOpen) && (
           <div className={styles.linksContainer}>
             <div className="hidden md:block xl:block">
               <div className={styles.firstRowLinkSection}>
-                {/* <Link className={`${roboto.className} ${styles.textLink}`} href="/">Home</Link> */}
                 <Link className={`${roboto.className} ${pathname === '/profile' ? styles.textLinkActive : styles.textLink}`} href="/profile">Profile</Link>
                 <Link className={`${roboto.className} ${pathname === '/expertise' ? styles.textLinkActive : styles.textLink}`} href="/expertise">Expertise</Link>
                 <Link className={`${roboto.className} ${['/work', '/works'].includes(pathname) ? styles.textLinkActive : styles.textLink}`} href="/work">Work</Link>
@@ -56,7 +59,7 @@ export const TopMenu = () => {
                 <Link className={`${roboto.className} ${pathname === '/contact' ? styles.textLinkActive : styles.textLink}`} href="/contact">Contact</Link>
               </div>
             </div>
-        </div>
+          </div>
         )}
 
         {/* Menu Button */}
@@ -65,9 +68,9 @@ export const TopMenu = () => {
             onClick={toggleMenu} 
             className={`${styles.hamMenu} ${isSideMenuOpen ? styles.active : ''}`}
           >
-              <span></span>
-              <span></span>
-              <span></span>
+              <span className={styles.hamLine}></span>
+              <span className={styles.hamLine}></span>
+              <span className={styles.hamLine}></span>
           </button>
         </div>
     </nav>
