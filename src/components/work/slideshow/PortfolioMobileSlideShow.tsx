@@ -30,7 +30,9 @@ export const PortfolioMobileSlideShow = ({images, title, className} : Props) => 
         spaceBetween={8}
         slidesPerView={hasMultiple ? 1.08 : 1}
         centeredSlides={hasMultiple}
-        loop={images.length >= 3}
+        // Swiper 12's loop mode stalls with only 3 slides here; rewind keeps them cycling
+        loop={images.length >= 4}
+        rewind={images.length === 3}
         pagination
         autoplay={{
                 delay: 3000
