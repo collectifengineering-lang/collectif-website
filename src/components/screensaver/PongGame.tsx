@@ -169,6 +169,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       left: false,
       right: false,
       boost: false,
+      nudge: 0, // px of keyboard taps not yet applied
       serve: false,
       snap: false,
     };
@@ -425,6 +426,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       ai.key = "";
       ai.smash = false;
       input.pointerX = null;
+      input.nudge = 0;
       input.snap = true;
     };
 
@@ -515,8 +517,8 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       if (Math.random() < 0.6) lines.push([...ringB, ringB[0], ringB[1]]);
       // Dark + light stroke so cracks read on both light and dark pages
       const strokes: [string, number, number][] = [
-        ["rgba(0,0,0,0.4)", 1.4, 0],
-        ["rgba(255,255,255,0.75)", 0.8, 0.7],
+        ["rgba(0,0,0,0.3)", 1.2, 0],
+        ["rgba(255,255,255,0.6)", 0.8, 0.7],
       ];
       for (const [style, width, off] of strokes) {
         screenCtx.strokeStyle = style;
@@ -624,33 +626,23 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }
     };
 
-    // A cracked pane: lines from near the impact out to the shard's corners
+    // A cracked pane: one faint hairline, so the frozen page underneath stays readable
     const crackShard = (t: number, x: number, y: number) => {
       const ox = cx[t] + (x - cx[t]) * 0.4;
       const oy = cy[t] + (y - cy[t]) * 0.4;
+      const v = tri[t * 3 + Math.floor(Math.random() * 3)];
       screenCtx.save();
       screenCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       screenCtx.beginPath();
       shardPath(screenCtx, t);
       screenCtx.clip();
-      const strokes: [string, number, number][] = [
-        ["rgba(0,0,0,0.35)", 1.3, 0],
-        ["rgba(255,255,255,0.8)", 0.8, 0.6],
-      ];
-      for (const [style, width, off] of strokes) {
-        screenCtx.strokeStyle = style;
-        screenCtx.lineWidth = width;
-        screenCtx.beginPath();
-        for (let k = 0; k < 3; k++) {
-          const v = tri[t * 3 + k];
-          const mx = (ox + px[v]) / 2 + rand(-3, 3);
-          const my = (oy + py[v]) / 2 + rand(-3, 3);
-          screenCtx.moveTo(ox + off, oy + off);
-          screenCtx.lineTo(mx + off, my + off);
-          screenCtx.lineTo(px[v] + off, py[v] + off);
-        }
-        screenCtx.stroke();
-      }
+      screenCtx.strokeStyle = "rgba(255,255,255,0.45)";
+      screenCtx.lineWidth = 0.8;
+      screenCtx.beginPath();
+      screenCtx.moveTo(ox, oy);
+      screenCtx.lineTo((ox + px[v]) / 2 + rand(-3, 3), (oy + py[v]) / 2 + rand(-3, 3));
+      screenCtx.lineTo(px[v], py[v]);
+      screenCtx.stroke();
       screenCtx.restore();
     };
 
@@ -754,12 +746,11 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         g.hitStop = 0.07;
         burst(b.x, b.y, 18, SMASH_COLOR, H * 0.7);
         burst(b.x, b.y, 8, "#ffffff", H * 0.5);
-        crackStar(b.x, b.y, geo.S * 3.2, 11);
+        crackStar(b.x, b.y, geo.S * 2.2, 8);
         shatter(b.x, b.y, geo.S * 1.4, side, b, b.vx * 0.3, b.vy * 0.3);
       } else {
         burst(b.x, b.y, 6, color, H * 0.3);
         g.shake = Math.min(18, g.shake + 1.5);
-        if (!isServe) crackStar(b.x, b.y, geo.S * 1.4, 6);
       }
     };
 
@@ -779,7 +770,6 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         b.vx = left ? Math.abs(b.vx) : -Math.abs(b.vx);
         b.spin = 0;
         burst(b.x, b.y, 4, "#ffffff", H * 0.25);
-        crackStar(b.x, b.y, geo.S * 2, 7);
         shatter(b.x, b.y, Math.max(breakRadius(b) * 1.3, geo.S * 0.4), b.owner, b, b.vx * 0.2, b.vy * 0.2, 0.15);
         g.shake = Math.min(18, g.shake + 2);
       }
@@ -804,7 +794,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const edgeY = scorer === "player" ? 0 : H;
       burst(b.x, edgeY, 30, color, H * 0.8);
       burst(b.x, edgeY, 12, "#ffffff", H * 0.6);
-      crackStar(b.x, edgeY, geo.S * 5, 12);
+      crackStar(b.x, edgeY, geo.S * 3, 9);
       shatter(b.x, edgeY, geo.S * 2, scorer, null, 0, scorer === "player" ? H * 0.4 : -H * 0.6);
       addText(scorer === "player" ? `GOAL! +${GOAL_POINTS}` : `CPU SCORES +${GOAL_POINTS}`, W / 2, H / 2, color, geo.narrow ? 26 : 34, 1.4);
       g.shake = Math.min(20, g.shake + 14);
@@ -825,10 +815,11 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     const updatePlayer = (dt: number) => {
       const P = g.player;
-      if (input.left || input.right) {
+      if (input.left || input.right || input.nudge !== 0) {
         const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
         const kb = Math.max(W * 1.1, 700) * (input.boost ? 1.9 : 1);
-        input.pointerX = clamp((input.pointerX ?? P.x) + dir * kb * dt, P.w / 2, W - P.w / 2);
+        input.pointerX = clamp((input.pointerX ?? P.x) + dir * kb * dt + input.nudge, P.w / 2, W - P.w / 2);
+        input.nudge = 0;
       }
       if (input.pointerX !== null) P.x = clamp(input.pointerX, P.w / 2, W - P.w / 2);
       if (input.snap) {
@@ -958,7 +949,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         if (!introCracked && g.time > 0.55) {
           // The freeze: the glass cracks from the middle before play starts
           introCracked = true;
-          crackStar(W / 2, H / 2, Math.min(W, H) * 0.42, 14);
+          crackStar(W / 2, H / 2, Math.min(W, H) * 0.3, 10);
           g.shake = 10;
           g.flash = 0.25;
           g.flashColor = "#ffffff";
@@ -1359,9 +1350,16 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         exit();
         return;
       }
-      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") input.left = true;
-      else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") input.right = true;
-      else if (e.key === "Shift") input.boost = true;
+      // A press is applied right away as a nudge, so quick taps that start and end
+      // between two frames still move the paddle; holding keeps it gliding.
+      const step = Math.max(W * 0.05, 30);
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+        input.left = true;
+        if (!e.repeat) input.nudge -= step;
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+        input.right = true;
+        if (!e.repeat) input.nudge += step;
+      } else if (e.key === "Shift") input.boost = true;
       else if (e.key === " " || e.key === "Enter") input.serve = true;
       else return;
       e.preventDefault();
