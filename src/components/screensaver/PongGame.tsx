@@ -25,7 +25,7 @@ interface Ball {
   combo: number; // shards broken since the last paddle hit
   bounces: number; // bumps on every paddle hit, lets the CPU re-aim
   trail: { x: number; y: number }[];
-  bomb: { fuse: number; by: Side } | null; // a lit bomb: who sent it and seconds left on the fuse
+  bomb: { fuse: number; by: Side; mega?: boolean } | null; // a lit bomb: who sent it, seconds left on the fuse
 }
 
 interface Paddle {
@@ -108,6 +108,9 @@ const GOAL_POINTS = 40;
 const KO_POINTS = 60;
 const FUSE_SECONDS = 5;
 const KO_SECONDS = 3;
+const MEGA_KO_SECONDS = 5;
+const MEGA_KO_POINTS = 100;
+const CPU_MAX_BOMBS = 1;
 // Secret: the Konami code arms a bomb (once per match); on touch, triple-tap your score
 const KONAMI = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
 const MAX_DEBRIS = 260;
@@ -221,6 +224,11 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       meter: { player: 0, cpu: 0 }, // bomb charge 0..1; full = next hit sends a bomb
       kos: 0, // paddles you blew up
       secretUsed: false,
+      megaArmed: false, // secret code entered: the next player hit lights a MEGA BOMB
+      cpuBombs: 0,
+      desat: 0, // seconds of black-and-white after a big blast
+      spot: { until: 0, id: 0 }, // spotlight on a freshly lit bomb
+      bomblets: [] as { x: number; y: number; at: number; by: Side }[],
       bestCombo: 0,
       topSpeed: 0,
       lastSpeed: 0,
@@ -446,6 +454,11 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       g.meter = { player: 0, cpu: 0 };
       g.kos = 0;
       g.secretUsed = false;
+      g.megaArmed = false;
+      g.cpuBombs = 0;
+      g.desat = 0;
+      g.spot = { until: 0, id: 0 };
+      g.bomblets = [];
       g.score = { player: 0, cpu: 0 };
       g.shards = { player: 0, cpu: 0 };
       g.bestCombo = 0;
@@ -472,6 +485,9 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     // ---------- effects ----------
 
+    // Cycling colour for everything MEGA
+    const rainbow = (offset: number) => `hsl(${Math.round(g.time * 540 + offset) % 360} 100% 58%)`;
+
     const addText = (text: string, x: number, y: number, color: string, size = 20, life = 1.1) => {
       g.texts.push({ text, x: clamp(x, 80, W - 80), y, life, maxLife: life, color, size });
     };
@@ -487,12 +503,14 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     // ---------- bomb ----------
 
-    // Bomb meter: smashes, combos, goals and broken glass charge it; when it's full the
-    // side's next hit lights a bomb (one bomb in play at a time)
+    // Bomb meter: only skill charges it (smashes, and combos of x3 and up), so a bomb is
+    // rare, about one a match for a good player. When it's full, the side's next hit
+    // lights a bomb (one bomb in play at a time).
     const charge = (side: Side, amount: number) => {
       if (g.phase !== "play") return;
+      // The CPU only starts charging at level 4, slower, and gets at most one bomb a match
+      if (side === "cpu" && (g.level < 4 || g.cpuBombs >= CPU_MAX_BOMBS)) return;
       const before = g.meter[side];
-      // The CPU charges slower, catching up as it levels up
       g.meter[side] = Math.min(1, before + amount * (side === "cpu" ? 0.45 + 0.45 * g.d : 1));
       if (before < 1 && g.meter[side] >= 1) {
         const p = side === "player" ? g.player : g.cpu;
@@ -500,41 +518,45 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }
     };
 
+    // The secret code (Konami / triple-tap) arms the exclusive MEGA BOMB, once per match
     const secretBomb = () => {
       if (g.secretUsed || g.phase !== "play") return;
       g.secretUsed = true;
-      g.meter.player = 1;
-      g.flash = 0.4;
-      g.flashColor = BOMB_COLOR;
-      addText("SECRET BOMB UNLOCKED!", W / 2, H / 2 - 50, BOMB_COLOR, 16, 2);
+      g.megaArmed = true;
+      g.flash = 0.5;
+      g.flashColor = "#ff00ff";
+      g.hitStop = 0.15;
+      addText("MEGA BOMB UNLOCKED!", W / 2, H / 2 - 50, rainbow(0), 16, 2.2);
+      addText("YOUR NEXT HIT", W / 2, H / 2 - 20, "#ffffff", 10, 2.2);
     };
 
-    // KABOOM: a huge crater, a shockwave, and any paddle caught in it is knocked out.
-    // `direct` is the paddle the bomb hit; `nearKO` also KOs paddles close to the blast.
-    const explode = (b: Ball, x: number, y: number, direct: Side | null, nearKO: boolean, resetBall: boolean) => {
-      const by: Side = b.bomb ? b.bomb.by : b.owner;
-      b.bomb = null;
-      const R = Math.min(W, H) * 0.25;
-      debrisBudget = spritesThisFrame + 130;
-      crackStar(x, y, R * 1.3, 16);
+    // One explosion: crater, cracks, debris, shockwave, and paddles caught in it are
+    // knocked out. `direct` is a paddle the bomb hit; `nearKO` also KOs paddles near the blast.
+    const blast = (x: number, y: number, by: Side, R: number, direct: Side | null, nearKO: boolean, mega: boolean, small = false) => {
+      debrisBudget = spritesThisFrame + (small ? 60 : 130);
+      crackStar(x, y, R * 1.3, small ? 10 : 16);
       shatter(x, y, R, by, null, 0, 0, 0.3, 1.4);
-      g.shockwaves.push({ x, y, r: 0, maxR: R * 1.3, life: 0.6 });
-      burst(x, y, 50, BOMB_COLOR, H * 1.1);
-      burst(x, y, 30, BALL_COLOR, H * 0.9);
-      burst(x, y, 20, "#ff2d2d", H * 0.8);
-      burst(x, y, 14, "#ffffff", H * 0.6);
-      g.shake = 26;
-      g.flash = 0.6;
-      g.flashColor = "#fff3c4";
-      g.hitStop = 0.12;
-      addText("KABOOM!", x, clamp(y, H * 0.3, H * 0.7), BOMB_COLOR, geo.narrow ? 26 : 40, 1.4);
+      g.shockwaves.push({ x, y, r: 0, maxR: R * (small ? 1.2 : 1.6), life: 0.6 });
+      if (!small) g.shockwaves.push({ x, y, r: 0, maxR: R * 1.05, life: 0.45 });
+      burst(x, y, small ? 25 : 50, mega ? rainbow(0) : BOMB_COLOR, H * 1.1);
+      burst(x, y, small ? 15 : 30, BALL_COLOR, H * 0.9);
+      burst(x, y, small ? 10 : 20, mega ? rainbow(180) : "#ff2d2d", H * 0.8);
+      burst(x, y, small ? 6 : 14, "#ffffff", H * 0.6);
+      g.shake = small ? Math.max(g.shake, 16) : 30;
+      if (!small) {
+        g.flash = 0.6;
+        g.flashColor = "#fff3c4";
+        g.hitStop = mega ? 0.4 : 0.28; // a longer slow-motion beat on the big ones
+        g.desat = mega ? 0.5 : 0.35; // the world goes black-and-white for a moment
+        addText(mega ? "MEGA KABOOM!" : "KABOOM!", x, clamp(y, H * 0.3, H * 0.7), mega ? rainbow(0) : BOMB_COLOR, geo.narrow ? 24 : 40, 1.5);
+      }
 
       for (const side of ["player", "cpu"] as Side[]) {
         const p = side === "player" ? g.player : g.cpu;
         if (p.koUntil > g.time) continue;
         const caught = direct === side || (nearKO && Math.hypot(p.x - x, p.y + p.h / 2 - y) < R * 0.55);
         if (!caught) continue;
-        p.koUntil = g.time + KO_SECONDS;
+        p.koUntil = g.time + (mega ? MEGA_KO_SECONDS : KO_SECONDS);
         const color = side === "player" ? PLAYER_COLOR : CPU_COLOR;
         for (let i = 0; i < 26; i++) {
           const life = rand(0.6, 1.1);
@@ -551,11 +573,34 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         }
         const labelY = side === "cpu" ? p.y + 70 : p.y - 60;
         if (side !== by) {
-          g.score[by] += KO_POINTS;
+          const pts = mega ? MEGA_KO_POINTS : KO_POINTS;
+          g.score[by] += pts;
           if (by === "player") g.kos++;
-          addText(by === "player" ? `PADDLE KO! +${KO_POINTS}` : "YOUR PADDLE IS DOWN!", W / 2, labelY, by === "player" ? PLAYER_COLOR : CPU_COLOR, 14, 1.8);
+          addText(by === "player" ? `PADDLE KO! +${pts}` : "YOUR PADDLE IS DOWN!", W / 2, labelY, by === "player" ? PLAYER_COLOR : CPU_COLOR, 14, 1.8);
         } else {
           addText("SELF DESTRUCT!", W / 2, labelY, SMASH_COLOR, 14, 1.8);
+        }
+      }
+    };
+
+    // A bomb ball going off. The MEGA BOMB's crater is about twice the area, and it throws
+    // out three bomblets that go off a beat later.
+    const explode = (b: Ball, x: number, y: number, direct: Side | null, nearKO: boolean, resetBall: boolean) => {
+      const by: Side = b.bomb ? b.bomb.by : b.owner;
+      const mega = !!b.bomb?.mega;
+      b.bomb = null;
+      const R = Math.min(W, H) * (mega ? 0.36 : 0.25);
+      blast(x, y, by, R, direct, nearKO, mega);
+      if (mega) {
+        const a0 = Math.random() * Math.PI * 2;
+        for (let i = 0; i < 3; i++) {
+          const a = a0 + (i * Math.PI * 2) / 3;
+          g.bomblets.push({
+            x: clamp(x + Math.cos(a) * R * 0.75, 20, W - 20),
+            y: clamp(y + Math.sin(a) * R * 0.75, 20, H - 20),
+            at: g.time + 0.35 + i * 0.25,
+            by,
+          });
         }
       }
 
@@ -736,13 +781,12 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
             pts = mult;
             if (mult > 1 && (b.combo - 1) % 12 === 0) {
               addText(`COMBO x${mult}`, b.x, b.y - 26, b.owner === "player" ? PLAYER_COLOR : CPU_COLOR, 12 + mult * 2);
-              charge(b.owner, 0.06);
+              if (mult >= 3) charge(b.owner, 0.15); // only big combos feed the bomb
             }
             if (b.owner === "player") g.bestCombo = Math.max(g.bestCombo, b.combo);
           }
           g.score[credit] += pts;
           g.shards[credit]++;
-          charge(credit, 0.0015);
         }
         g.shake = Math.min(18, g.shake + 0.35);
 
@@ -848,10 +892,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }
 
       // Hot potato: a bomb reaching the other side's paddle blows it up, unless they
-      // smash it straight back (the fuse keeps burning)
+      // smash it straight back (the fuse keeps burning). A MEGA BOMB can't be sent back.
       let returned = false;
       if (!isServe && b.bomb && b.bomb.by !== side) {
-        if (Math.abs(swipe) <= 0.6) {
+        if (Math.abs(swipe) <= 0.6 || b.bomb.mega) {
           explode(b, b.x, side === "player" ? p.y : p.y + p.h, side, false, true);
           return;
         }
@@ -866,11 +910,15 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
       const cur = Math.hypot(b.vx, b.vy);
       const cruise = cruiseSpeed();
-      // A full meter lights a bomb on this hit
-      const lightBomb = !b.bomb && g.phase === "play" && g.meter[side] >= 1 && !g.balls.some((o) => o.bomb);
+      // A full meter (or the secret MEGA BOMB) lights a bomb on this hit
+      const bombFree = g.phase === "play" && !b.bomb && !g.balls.some((o) => o.bomb);
+      const lightMega = bombFree && side === "player" && g.megaArmed;
+      const lightBomb = bombFree && (lightMega || g.meter[side] >= 1);
       if (lightBomb) {
-        b.bomb = { fuse: FUSE_SECONDS, by: side };
-        g.meter[side] = 0;
+        b.bomb = { fuse: FUSE_SECONDS, by: side, mega: lightMega };
+        if (lightMega) g.megaArmed = false;
+        else g.meter[side] = 0;
+        if (side === "cpu") g.cpuBombs++;
       }
       // Speed regresses toward cruise on a still paddle, a fast swipe adds a lot on top.
       // Bombs are capped so the other side has a fair chance to smash them back.
@@ -894,13 +942,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         g.topSpeed = Math.max(g.topSpeed, kmh);
       }
       const color = side === "player" ? PLAYER_COLOR : CPU_COLOR;
-      if (lightBomb) {
-        addText(side === "player" ? "BOMB AWAY!" : "INCOMING BOMB!", W / 2, side === "player" ? H * 0.42 : H * 0.58, BOMB_COLOR, 18, 1.4);
-        if (side === "cpu") addText("SWIPE IT BACK OR DODGE", W / 2, g.player.y - 70, "#ffffff", 10, 2);
-        burst(b.x, b.y, 16, BOMB_COLOR, H * 0.5);
-        g.shake = Math.min(18, g.shake + 4);
-      }
-      if (!returned && Math.abs(swipe) > 0.7 && speed >= smashSpeed()) charge(side, 0.25);
+      if (!returned && Math.abs(swipe) > 0.7 && speed >= smashSpeed()) charge(side, 0.12);
       if (Math.abs(swipe) > 0.7 && speed >= smashSpeed()) {
         addText(`SMASH ${kmh} KM/H`, b.x, b.y + dir * 34, SMASH_COLOR, geo.narrow ? 12 : 16);
         g.shake = Math.min(18, g.shake + 9);
@@ -912,6 +954,18 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       } else {
         burst(b.x, b.y, 6, color, H * 0.3);
         g.shake = Math.min(18, g.shake + 1.5);
+      }
+
+      // Lighting a bomb is a moment: slow motion, the screen dims around a spotlight on it
+      if (lightBomb) {
+        const mega = !!b.bomb?.mega;
+        g.hitStop = Math.max(g.hitStop, mega ? 0.45 : 0.3);
+        g.spot = { until: g.time + 1.2, id: b.id };
+        addText(mega ? "MEGA BOMB!" : side === "player" ? "BOMB AWAY!" : "INCOMING BOMB!", W / 2, side === "player" ? H * 0.42 : H * 0.58, mega ? rainbow(0) : BOMB_COLOR, geo.narrow ? 18 : 26, 1.6);
+        if (side === "cpu") addText("SWIPE IT BACK OR DODGE", W / 2, g.player.y - 70, "#ffffff", 10, 2.2);
+        if (mega) addText("NO RETURNS!", W / 2, H * 0.42 + 34, "#ffffff", 10, 2);
+        burst(b.x, b.y, 24, mega ? rainbow(90) : BOMB_COLOR, H * 0.6);
+        g.shake = Math.min(18, g.shake + 6);
       }
     };
 
@@ -954,11 +1008,11 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     const goal = (scorer: Side, b: Ball) => {
       const conceder: Side = scorer === "player" ? "cpu" : "player";
       g.score[scorer] += GOAL_POINTS;
-      charge(scorer, 0.08);
       const color = scorer === "player" ? PLAYER_COLOR : CPU_COLOR;
       const edgeY = scorer === "player" ? 0 : H;
-      // A dodged bomb still goes off at the goal line (crater + goal, but no paddle KO)
-      if (b.bomb) explode(b, b.x, edgeY, null, false, false);
+      // A dodged bomb still goes off at the goal line: crater + goal, and only a MEGA BOMB
+      // is big enough to take out the paddle there too
+      if (b.bomb) explode(b, b.x, edgeY, null, !!b.bomb.mega, false);
       burst(b.x, edgeY, 30, color, H * 0.8);
       burst(b.x, edgeY, 12, "#ffffff", H * 0.6);
       crackStar(b.x, edgeY, geo.S * 3, 9);
@@ -1037,7 +1091,12 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
             ai.smash = Math.random() < 0.1 + 0.45 * d;
             ai.aimOff = d > 0.3 && !ai.smash ? rand(0.2, 0.6) * ai.swipeDir : 0;
             // An incoming bomb: try to smash it back (more likely as it levels up) or get out of the way
-            ai.bombPlan = threat.bomb && threat.bomb.by !== "cpu" ? (Math.random() < 0.3 + 0.5 * d ? "return" : "dodge") : "";
+            ai.bombPlan =
+              threat.bomb && threat.bomb.by !== "cpu"
+                ? threat.bomb.mega || Math.random() >= 0.3 + 0.5 * d
+                  ? "dodge"
+                  : "return"
+                : "";
             if (ai.bombPlan === "return") ai.smash = true;
             if (ai.bombPlan === "dodge") ai.smash = false;
           }
@@ -1100,6 +1159,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       for (let t = 0; t < total; t++) if (alive[t]) breakShard(t, null, 0, 0, null);
       for (const b of g.balls) burst(b.x, b.y, 14, "#ffffff", H * 0.5);
       g.balls = [];
+      g.bomblets = [];
       g.shake = 20;
       g.flash = 0.5;
       g.flashColor = "#ffffff";
@@ -1245,6 +1305,14 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }
       g.shockwaves = g.shockwaves.filter((s) => s.life > 0);
 
+      // MEGA BOMB cluster: the bomblets go off one after another
+      if (g.bomblets.length) {
+        const due = g.bomblets.filter((k) => g.time >= k.at);
+        g.bomblets = g.bomblets.filter((k) => g.time < k.at);
+        for (const k of due) blast(k.x, k.y, k.by, Math.min(W, H) * 0.14, null, true, true, true);
+      }
+      g.desat = Math.max(0, g.desat - dt);
+
       g.shake *= Math.exp(-dt * 10);
       if (g.shake < 0.2) g.shake = 0;
       g.flash = Math.max(0, g.flash - dt);
@@ -1254,6 +1322,13 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     // Everything the game draws itself sits on a chunky pixel grid
     const snap = (v: number, u: number) => Math.round(v / u) * u;
+
+    // 0..1 pulse that beats faster as a fuse burns down (1 right on the beat)
+    const heartbeat = (fuse: number) => {
+      const bps = fuse < 1 ? 4 : fuse < 2.5 ? 2.5 : 1.3;
+      const phase = (g.time * bps) % 1;
+      return phase < 0.35 ? 1 - phase / 0.35 : 0;
+    };
 
     // Pixel-art sprite centred on (x, y): one string per row, one char per pixel,
     // looked up in the palette ("." = transparent)
@@ -1372,7 +1447,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       if (b.held && (b.held === "player" ? g.player : g.cpu).koUntil > g.time) return; // its paddle is gone
       const fast = !b.bomb && Math.hypot(b.vx, b.vy) >= smashSpeed();
       const tint = fast ? SMASH_COLOR : b.owner === "player" ? PLAYER_COLOR : CPU_COLOR;
-      const main = b.bomb ? BOMB_COLOR : fast ? SMASH_COLOR : BALL_COLOR;
+      const main = b.bomb ? (b.bomb.mega ? rainbow(0) : BOMB_COLOR) : fast ? SMASH_COLOR : BALL_COLOR;
       const u = Math.max(3, Math.round((b.r * 2.8) / 8));
 
       // Trail: chunky squares that shrink and fade
@@ -1399,7 +1474,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       // Ring of pixels orbiting the ball
       const pulse = 1 + 0.12 * Math.sin(g.time * 12 + b.id);
       ctx.globalAlpha = 0.95;
-      ctx.fillStyle = b.bomb ? BOMB_COLOR : fast ? SMASH_COLOR : "#ffffff";
+      ctx.fillStyle = b.bomb ? main : fast ? SMASH_COLOR : "#ffffff";
       for (let i = 0; i < 8; i++) {
         const a = g.time * 4 + (i * Math.PI) / 4;
         ctx.fillRect(Math.round(b.x + Math.cos(a) * u * 7 * pulse - u / 2), Math.round(b.y + Math.sin(a) * u * 7 * pulse - u / 2), u, u);
@@ -1408,14 +1483,26 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
       if (b.bomb) {
         const fuse = b.bomb.fuse;
+        const mega = !!b.bomb.mega;
+        const bu = mega ? u + 1 : u; // the MEGA BOMB is bigger
         const rate = fuse < 1 ? 16 : fuse < 2.5 ? 8 : 3;
         const hot = Math.floor(g.time * rate) % 2 === 0 && fuse < 2.5;
-        const spark = ["#ffe600", "#ff7a00", "#ffffff", "#ff2d2d"][Math.floor(g.time * 20) % 4];
-        sprite(BOMB_SPRITE, b.x, b.y - u, u, { O: "#ffffff", D: hot ? "#d01010" : "#1b1b1b", G: "#8a8a8a", F: "#c08040", S: spark });
+        // Heartbeat: a pulse that beats faster as the fuse burns down
+        const beat = heartbeat(fuse);
+        if (beat > 0) {
+          ctx.globalAlpha = 0.45 * beat;
+          ctx.fillStyle = mega ? rainbow(120) : "#ff2d2d";
+          pixelDisk(b.x, b.y, bu * (6 + 4 * (1 - beat)), bu);
+          ctx.globalAlpha = 1;
+        }
+        const spark = mega ? rainbow(Math.random() * 360) : ["#ffe600", "#ff7a00", "#ffffff", "#ff2d2d"][Math.floor(g.time * 20) % 4];
+        const body = mega ? (hot ? "#ffffff" : rainbow(200)) : hot ? "#d01010" : "#1b1b1b";
+        sprite(BOMB_SPRITE, b.x, b.y - bu, bu, { O: mega ? rainbow(0) : "#ffffff", D: body, G: mega ? "#ffffff" : "#8a8a8a", F: "#c08040", S: spark });
         // Countdown above the fuse
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-        pixelText(String(Math.ceil(fuse)), b.x, b.y - u * 7, hot ? "#ff2d2d" : "#ffffff", 10);
+        pixelText(String(Math.ceil(fuse)), b.x, b.y - bu * 7, hot ? "#ff2d2d" : mega ? rainbow(60) : "#ffffff", 16);
+        if (mega) pixelText("MEGA", b.x, b.y - bu * 7 - 20, rainbow(0), 8);
       } else {
         sprite(BALL_SPRITE, b.x, b.y, u, { K: "#000000", Y: main, W: "#ffffff", T: tint });
       }
@@ -1503,6 +1590,11 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const my = geo.narrow ? by + bh + 22 : top + size + 12;
       drawMeter("player", 14, my, false);
       drawMeter("cpu", W - 58, my, true);
+      if (g.megaArmed && Math.floor(g.time * 5) % 2 === 0) {
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        pixelText("MEGA BOMB ARMED", 14, my + 14, rainbow(0), 8);
+      }
 
       // Bottom: controls hint at the start, then the speed of your last return
       ctx.textBaseline = "bottom";
@@ -1578,9 +1670,48 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         drawPaddle(g.player, PLAYER_COLOR);
       }
       if (g.phase === "play") drawLandingMarkers();
+
+      const bomb = g.balls.find((b) => b.bomb && !b.held);
+      if (bomb && bomb.bomb) {
+        // Spotlight: right after it's lit, everything but the bomb dims
+        if (g.spot.id === bomb.id && g.time < g.spot.until) {
+          ctx.globalAlpha = 0.55 * Math.min(1, (g.spot.until - g.time) / 0.4);
+          ctx.fillStyle = "#000000";
+          ctx.beginPath();
+          ctx.rect(-50, -50, W + 100, H + 100);
+          ctx.arc(bomb.x, bomb.y, Math.min(W, H) * 0.16, 0, Math.PI * 2, true);
+          ctx.fill("evenodd");
+          ctx.globalAlpha = 1;
+        }
+        // Warning border on the side the bomb is heading for, beating with the fuse
+        const beat = heartbeat(bomb.bomb.fuse);
+        if (beat > 0) {
+          const target: Side = bomb.bomb.by === "player" ? "cpu" : "player";
+          const t = geo.u * 2;
+          const y0 = target === "cpu" ? 0 : H - t;
+          ctx.globalAlpha = 0.85 * beat;
+          ctx.fillStyle = bomb.bomb.mega ? rainbow(0) : "#ff2d2d";
+          ctx.fillRect(0, y0, W, t);
+          const sideLen = Math.round(H * 0.3);
+          const sy = target === "cpu" ? 0 : H - sideLen;
+          ctx.fillRect(0, sy, t, sideLen);
+          ctx.fillRect(W - t, sy, t, sideLen);
+          ctx.globalAlpha = 1;
+        }
+      }
+
       for (const b of g.balls) drawBall(b);
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // After a big blast the world goes black-and-white for a beat, then the colour returns
+      if (g.desat > 0) {
+        ctx.globalCompositeOperation = "saturation";
+        ctx.globalAlpha = Math.min(1, g.desat / 0.15);
+        ctx.fillStyle = "#808080";
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = 1;
+      }
       if (g.flash > 0) {
         ctx.globalAlpha = g.flash * 0.35 * motion;
         ctx.fillStyle = g.flashColor;
