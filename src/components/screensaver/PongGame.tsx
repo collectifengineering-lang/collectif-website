@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Press_Start_2P } from "next/font/google";
 
 interface PongGameProps {
   onExit: () => void;
@@ -24,6 +25,7 @@ interface Ball {
   combo: number; // shards broken since the last paddle hit
   bounces: number; // bumps on every paddle hit, lets the CPU re-aim
   trail: { x: number; y: number }[];
+  bomb: { fuse: number; by: Side } | null; // a lit bomb: who sent it and seconds left on the fuse
 }
 
 interface Paddle {
@@ -33,6 +35,15 @@ interface Paddle {
   h: number;
   vx: number; // smoothed velocity in px/s, drives speed and spin of returns
   prevX: number;
+  koUntil: number; // blown up by a bomb: gone (no hits) until this game time
+}
+
+interface Shockwave {
+  x: number;
+  y: number;
+  r: number;
+  maxR: number;
+  life: number;
 }
 
 interface Debris {
@@ -80,14 +91,25 @@ interface MatchResult {
   cpuShards: number;
   bestCombo: number;
   topSpeed: number;
+  kos: number;
 }
+
+// 8-bit look. preload: false so the rest of the site never downloads it; it's
+// fetched when the game opens.
+const pixelFont = Press_Start_2P({ weight: "400", subsets: ["latin"], display: "swap", preload: false });
+const FONT = pixelFont.style.fontFamily;
 
 const PLAYER_COLOR = "#88D0BA";
 const CPU_COLOR = "#6888fc";
 const SMASH_COLOR = "#ff2d8a";
 const BALL_COLOR = "#ffe600";
-const FONT = "'Courier New', ui-monospace, monospace";
+const BOMB_COLOR = "#ff7a00";
 const GOAL_POINTS = 40;
+const KO_POINTS = 60;
+const FUSE_SECONDS = 5;
+const KO_SECONDS = 3;
+// Secret: the Konami code arms a bomb (once per match); on touch, triple-tap your score
+const KONAMI = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
 const MAX_DEBRIS = 260;
 const MAX_SPARKS = 360;
 const DEBRIS_PER_FRAME = 45;
@@ -121,6 +143,9 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0.25 : 1;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
+    // The canvas doesn't trigger web-font downloads by itself; ask for the pixel font now
+    // (it swaps in on the next frame once loaded)
+    document.fonts?.load(`16px ${FONT}`).catch(() => {});
 
     // Viewport + device pixels
     let W = 0;
@@ -135,6 +160,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       rows: 0,
       ballR: 8,
       pvRef: 1600, // paddle speed that counts as a "full" swipe
+      u: 3, // 8-bit pixel size for paddles, markers and effects
       narrow: false,
     };
 
@@ -164,6 +190,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     const introEnd = 1.4;
     let introCracked = false;
     let spritesThisFrame = 0;
+    let debrisBudget = DEBRIS_PER_FRAME; // raised for one frame by a bomb blast
 
     const input = {
       pointerX: null as number | null,
@@ -186,10 +213,14 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       debris: [] as Debris[],
       sparks: [] as Spark[],
       texts: [] as FloatText[],
-      player: { x: 0, y: 0, w: 100, h: 12, vx: 0, prevX: 0 } as Paddle,
-      cpu: { x: 0, y: 0, w: 100, h: 12, vx: 0, prevX: 0 } as Paddle,
+      shockwaves: [] as Shockwave[],
+      player: { x: 0, y: 0, w: 100, h: 12, vx: 0, prevX: 0, koUntil: 0 } as Paddle,
+      cpu: { x: 0, y: 0, w: 100, h: 12, vx: 0, prevX: 0, koUntil: 0 } as Paddle,
       score: { player: 0, cpu: 0 },
       shards: { player: 0, cpu: 0 },
+      meter: { player: 0, cpu: 0 }, // bomb charge 0..1; full = next hit sends a bomb
+      kos: 0, // paddles you blew up
+      secretUsed: false,
       bestCombo: 0,
       topSpeed: 0,
       lastSpeed: 0,
@@ -213,6 +244,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       aimOff: 0,
       smash: false,
       swipeDir: 1,
+      bombPlan: "" as "" | "return" | "dodge", // what to do about an incoming bomb
     };
 
     const cruiseSpeed = () => H * (0.55 + 0.35 * g.d);
@@ -228,7 +260,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       c.fillStyle = grad;
       c.fillRect(0, 0, W, H);
       c.fillStyle = "rgba(255,255,255,0.9)";
-      c.font = `bold ${Math.round(Math.min(W, H) * 0.12)}px ${FONT}`;
+      c.font = `${Math.round(Math.min(W, H) * 0.08)}px ${FONT}`;
       c.textAlign = "center";
       c.textBaseline = "middle";
       c.fillText("COLLECTIF", W / 2, H / 2);
@@ -249,12 +281,13 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       geo.sy = H / geo.rows;
       geo.ballR = clamp(Math.min(W, H) * 0.011, 6, 10);
       geo.pvRef = clamp(W * 1.6, 900, 2600);
+      geo.u = clamp(Math.round(Math.min(W, H) / 220), 2, 4);
 
       const lane = clamp(H * 0.22, 120, 210);
       const pw = clamp(W * 0.13, 84, 170);
       const ph = clamp(H * 0.016, 10, 15);
-      g.player = { x: W / 2, y: H - Math.max(38, lane * 0.3) - ph, w: pw, h: ph, vx: 0, prevX: W / 2 };
-      g.cpu = { x: W / 2, y: Math.max(geo.narrow ? 66 : 56, lane * 0.36), w: pw, h: ph, vx: 0, prevX: W / 2 };
+      g.player = { x: W / 2, y: H - Math.max(38, lane * 0.3) - ph, w: pw, h: ph, vx: 0, prevX: W / 2, koUntil: 0 };
+      g.cpu = { x: W / 2, y: Math.max(geo.narrow ? 86 : 64, lane * 0.38), w: pw, h: ph, vx: 0, prevX: W / 2, koUntil: 0 };
 
       // Source + screen layers
       for (const c of [source, screen, bg]) {
@@ -395,6 +428,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       combo: 0,
       bounces: 0,
       trail: [],
+      bomb: null,
     });
 
     const newMatch = () => {
@@ -408,6 +442,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       g.debris = [];
       g.sparks = [];
       g.texts = [];
+      g.shockwaves = [];
+      g.meter = { player: 0, cpu: 0 };
+      g.kos = 0;
+      g.secretUsed = false;
       g.score = { player: 0, cpu: 0 };
       g.shards = { player: 0, cpu: 0 };
       g.bestCombo = 0;
@@ -426,6 +464,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       ai.target = W / 2;
       ai.key = "";
       ai.smash = false;
+      ai.bombPlan = "";
       input.pointerX = null;
       input.nudge = 0;
       input.snap = true;
@@ -443,6 +482,95 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         const s = rand(0.3, 1) * power;
         const life = rand(0.3, 0.7);
         g.sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life, maxLife: life, size: rand(2, 4.5), color });
+      }
+    };
+
+    // ---------- bomb ----------
+
+    // Bomb meter: smashes, combos, goals and broken glass charge it; when it's full the
+    // side's next hit lights a bomb (one bomb in play at a time)
+    const charge = (side: Side, amount: number) => {
+      if (g.phase !== "play") return;
+      const before = g.meter[side];
+      // The CPU charges slower, catching up as it levels up
+      g.meter[side] = Math.min(1, before + amount * (side === "cpu" ? 0.45 + 0.45 * g.d : 1));
+      if (before < 1 && g.meter[side] >= 1) {
+        const p = side === "player" ? g.player : g.cpu;
+        addText(side === "player" ? "BOMB READY!" : "CPU BOMB READY!", p.x, side === "player" ? p.y - 44 : p.y + 56, BOMB_COLOR, 12, 1.6);
+      }
+    };
+
+    const secretBomb = () => {
+      if (g.secretUsed || g.phase !== "play") return;
+      g.secretUsed = true;
+      g.meter.player = 1;
+      g.flash = 0.4;
+      g.flashColor = BOMB_COLOR;
+      addText("SECRET BOMB UNLOCKED!", W / 2, H / 2 - 50, BOMB_COLOR, 16, 2);
+    };
+
+    // KABOOM: a huge crater, a shockwave, and any paddle caught in it is knocked out.
+    // `direct` is the paddle the bomb hit; `nearKO` also KOs paddles close to the blast.
+    const explode = (b: Ball, x: number, y: number, direct: Side | null, nearKO: boolean, resetBall: boolean) => {
+      const by: Side = b.bomb ? b.bomb.by : b.owner;
+      b.bomb = null;
+      const R = Math.min(W, H) * 0.25;
+      debrisBudget = spritesThisFrame + 130;
+      crackStar(x, y, R * 1.3, 16);
+      shatter(x, y, R, by, null, 0, 0, 0.3, 1.4);
+      g.shockwaves.push({ x, y, r: 0, maxR: R * 1.3, life: 0.6 });
+      burst(x, y, 50, BOMB_COLOR, H * 1.1);
+      burst(x, y, 30, BALL_COLOR, H * 0.9);
+      burst(x, y, 20, "#ff2d2d", H * 0.8);
+      burst(x, y, 14, "#ffffff", H * 0.6);
+      g.shake = 26;
+      g.flash = 0.6;
+      g.flashColor = "#fff3c4";
+      g.hitStop = 0.12;
+      addText("KABOOM!", x, clamp(y, H * 0.3, H * 0.7), BOMB_COLOR, geo.narrow ? 26 : 40, 1.4);
+
+      for (const side of ["player", "cpu"] as Side[]) {
+        const p = side === "player" ? g.player : g.cpu;
+        if (p.koUntil > g.time) continue;
+        const caught = direct === side || (nearKO && Math.hypot(p.x - x, p.y + p.h / 2 - y) < R * 0.55);
+        if (!caught) continue;
+        p.koUntil = g.time + KO_SECONDS;
+        const color = side === "player" ? PLAYER_COLOR : CPU_COLOR;
+        for (let i = 0; i < 26; i++) {
+          const life = rand(0.6, 1.1);
+          g.sparks.push({
+            x: p.x + rand(-p.w / 2, p.w / 2),
+            y: p.y + rand(0, p.h),
+            vx: rand(-1, 1) * H * 0.6,
+            vy: rand(-1, 0.3) * H * 0.7,
+            life,
+            maxLife: life,
+            size: rand(5, 9),
+            color,
+          });
+        }
+        const labelY = side === "cpu" ? p.y + 70 : p.y - 60;
+        if (side !== by) {
+          g.score[by] += KO_POINTS;
+          if (by === "player") g.kos++;
+          addText(by === "player" ? `PADDLE KO! +${KO_POINTS}` : "YOUR PADDLE IS DOWN!", W / 2, labelY, by === "player" ? PLAYER_COLOR : CPU_COLOR, 14, 1.8);
+        } else {
+          addText("SELF DESTRUCT!", W / 2, labelY, SMASH_COLOR, 14, 1.8);
+        }
+      }
+
+      if (resetBall) {
+        // The bomb is spent; whoever took the blast serves a fresh ball once they're back
+        const victim: Side = direct ?? (by === "player" ? "cpu" : "player");
+        const vp = victim === "player" ? g.player : g.cpu;
+        b.held = victim;
+        b.owner = victim;
+        b.vx = 0;
+        b.vy = 0;
+        b.spin = 0;
+        b.combo = 0;
+        b.trail = [];
+        b.serveAt = Math.max(g.time + 1, vp.koUntil + 0.4);
       }
     };
 
@@ -535,7 +663,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     };
 
     const spawnShardDebris = (t: number, vx: number, vy: number) => {
-      if (spritesThisFrame >= DEBRIS_PER_FRAME) return;
+      if (spritesThisFrame >= debrisBudget) return;
       spritesThisFrame++;
       const a = tri[t * 3];
       const b = tri[t * 3 + 1];
@@ -607,12 +735,14 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
             const mult = Math.min(4, 1 + Math.floor((b.combo - 1) / 12));
             pts = mult;
             if (mult > 1 && (b.combo - 1) % 12 === 0) {
-              addText(`COMBO x${mult}`, b.x, b.y - 26, b.owner === "player" ? PLAYER_COLOR : CPU_COLOR, 18 + mult * 2);
+              addText(`COMBO x${mult}`, b.x, b.y - 26, b.owner === "player" ? PLAYER_COLOR : CPU_COLOR, 12 + mult * 2);
+              charge(b.owner, 0.06);
             }
             if (b.owner === "player") g.bestCombo = Math.max(g.bestCombo, b.combo);
           }
           g.score[credit] += pts;
           g.shards[credit]++;
+          charge(credit, 0.0015);
         }
         g.shake = Math.min(18, g.shake + 0.35);
 
@@ -675,6 +805,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       vx = 0,
       vy = 0,
       slack = 0.4,
+      power = 0.35,
     ) => {
       const hits: number[] = [];
       forShardsNear(x, y, radius, (t) => hits.push(t), slack);
@@ -683,7 +814,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         const dy = cy[t] - y;
         const dist = Math.hypot(dx, dy) || 1;
         // Shards blow outward from the impact on top of the ball's push
-        const push = H * 0.35 * (1 - Math.min(1, dist / (radius + 1)));
+        const push = H * power * (1 - Math.min(1, dist / (radius + 1)));
         breakShard(t, credit, vx + (dx / dist) * push, vy + (dy / dist) * push, b);
       }
     };
@@ -715,17 +846,38 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         swipe = clamp(swipe + ai.swipeDir * rand(0.75, 1.1) * (0.6 + 0.4 * g.d), -1.6, 1.6);
         ai.smash = false;
       }
+
+      // Hot potato: a bomb reaching the other side's paddle blows it up, unless they
+      // smash it straight back (the fuse keeps burning)
+      let returned = false;
+      if (!isServe && b.bomb && b.bomb.by !== side) {
+        if (Math.abs(swipe) <= 0.6) {
+          explode(b, b.x, side === "player" ? p.y : p.y + p.h, side, false, true);
+          return;
+        }
+        b.bomb.by = side;
+        returned = true;
+        addText("RETURNED!", b.x, b.y + dir * 40, BOMB_COLOR, 14, 1.2);
+      }
+
       let angle = off * 0.95 + swipe * 0.42;
       if (isServe && Math.abs(swipe) < 0.15) angle += rand(-0.35, 0.35);
       angle = clamp(angle, -1.15, 1.15);
 
       const cur = Math.hypot(b.vx, b.vy);
       const cruise = cruiseSpeed();
-      // Speed regresses toward cruise on a still paddle, a fast swipe adds a lot on top
+      // A full meter lights a bomb on this hit
+      const lightBomb = !b.bomb && g.phase === "play" && g.meter[side] >= 1 && !g.balls.some((o) => o.bomb);
+      if (lightBomb) {
+        b.bomb = { fuse: FUSE_SECONDS, by: side };
+        g.meter[side] = 0;
+      }
+      // Speed regresses toward cruise on a still paddle, a fast swipe adds a lot on top.
+      // Bombs are capped so the other side has a fair chance to smash them back.
       const speed = clamp(
         (isServe ? cruise : lerp(cur, cruise, 0.5)) + Math.abs(swipe) * H * 0.6,
         H * 0.45,
-        maxSpeed(),
+        b.bomb ? H * 1.25 : maxSpeed(),
       );
       b.vx = Math.sin(angle) * speed;
       b.vy = dir * Math.cos(angle) * speed;
@@ -742,8 +894,15 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         g.topSpeed = Math.max(g.topSpeed, kmh);
       }
       const color = side === "player" ? PLAYER_COLOR : CPU_COLOR;
+      if (lightBomb) {
+        addText(side === "player" ? "BOMB AWAY!" : "INCOMING BOMB!", W / 2, side === "player" ? H * 0.42 : H * 0.58, BOMB_COLOR, 18, 1.4);
+        if (side === "cpu") addText("SWIPE IT BACK OR DODGE", W / 2, g.player.y - 70, "#ffffff", 10, 2);
+        burst(b.x, b.y, 16, BOMB_COLOR, H * 0.5);
+        g.shake = Math.min(18, g.shake + 4);
+      }
+      if (!returned && Math.abs(swipe) > 0.7 && speed >= smashSpeed()) charge(side, 0.25);
       if (Math.abs(swipe) > 0.7 && speed >= smashSpeed()) {
-        addText(`SMASH ${kmh} km/h`, b.x, b.y + dir * 34, SMASH_COLOR, geo.narrow ? 18 : 22);
+        addText(`SMASH ${kmh} KM/H`, b.x, b.y + dir * 34, SMASH_COLOR, geo.narrow ? 12 : 16);
         g.shake = Math.min(18, g.shake + 9);
         g.hitStop = 0.07;
         burst(b.x, b.y, 18, SMASH_COLOR, H * 0.7);
@@ -776,13 +935,16 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         g.shake = Math.min(18, g.shake + 2);
       }
 
+      // A knocked-out paddle isn't there to hit anything
       const P = g.player;
-      if (b.vy > 0 && b.y + b.r >= P.y && b.y - b.r <= P.y + P.h && Math.abs(b.x - P.x) <= P.w / 2 + b.r * 0.7) {
+      if (P.koUntil <= g.time && b.vy > 0 && b.y + b.r >= P.y && b.y - b.r <= P.y + P.h && Math.abs(b.x - P.x) <= P.w / 2 + b.r * 0.7) {
         paddleStrike(b, "player", false);
+        if (b.held) return; // the bomb went off on the paddle
       }
       const C = g.cpu;
-      if (b.vy < 0 && b.y - b.r <= C.y + C.h && b.y + b.r >= C.y && Math.abs(b.x - C.x) <= C.w / 2 + b.r * 0.7) {
+      if (C.koUntil <= g.time && b.vy < 0 && b.y - b.r <= C.y + C.h && b.y + b.r >= C.y && Math.abs(b.x - C.x) <= C.w / 2 + b.r * 0.7) {
         paddleStrike(b, "cpu", false);
+        if (b.held) return;
       }
 
       // The ball punches straight through the frozen screen
@@ -792,13 +954,16 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     const goal = (scorer: Side, b: Ball) => {
       const conceder: Side = scorer === "player" ? "cpu" : "player";
       g.score[scorer] += GOAL_POINTS;
+      charge(scorer, 0.08);
       const color = scorer === "player" ? PLAYER_COLOR : CPU_COLOR;
       const edgeY = scorer === "player" ? 0 : H;
+      // A dodged bomb still goes off at the goal line (crater + goal, but no paddle KO)
+      if (b.bomb) explode(b, b.x, edgeY, null, false, false);
       burst(b.x, edgeY, 30, color, H * 0.8);
       burst(b.x, edgeY, 12, "#ffffff", H * 0.6);
       crackStar(b.x, edgeY, geo.S * 3, 9);
       shatter(b.x, edgeY, geo.S * 2, scorer, null, 0, scorer === "player" ? H * 0.4 : -H * 0.6);
-      addText(scorer === "player" ? `GOAL! +${GOAL_POINTS}` : `CPU SCORES +${GOAL_POINTS}`, W / 2, H / 2, color, geo.narrow ? 26 : 34, 1.4);
+      addText(scorer === "player" ? `GOAL! +${GOAL_POINTS}` : `CPU SCORES +${GOAL_POINTS}`, W / 2, H / 2, color, geo.narrow ? 16 : 24, 1.4);
       g.shake = Math.min(20, g.shake + 14);
       g.flash = 0.35;
       g.flashColor = color;
@@ -871,9 +1036,14 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
             ai.swipeDir = g.player.x < W / 2 ? 1 : -1; // aim away from the player
             ai.smash = Math.random() < 0.1 + 0.45 * d;
             ai.aimOff = d > 0.3 && !ai.smash ? rand(0.2, 0.6) * ai.swipeDir : 0;
+            // An incoming bomb: try to smash it back (more likely as it levels up) or get out of the way
+            ai.bombPlan = threat.bomb && threat.bomb.by !== "cpu" ? (Math.random() < 0.3 + 0.5 * d ? "return" : "dodge") : "";
+            if (ai.bombPlan === "return") ai.smash = true;
+            if (ai.bombPlan === "dodge") ai.smash = false;
           }
           const tx = predictX(threat, C.y + C.h + threat.r);
           ai.target = tx + ai.err - (ai.aimOff * C.w) / 2 - (ai.smash ? ai.swipeDir * C.w * 0.15 : 0);
+          if (ai.bombPlan === "dodge") ai.target = tx + (tx < W / 2 ? 1 : -1) * (C.w * 0.9 + threat.r * 3);
         } else {
           let nx = W / 2;
           let best = Infinity;
@@ -910,7 +1080,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         const k = heldCount[side]++;
         b.x = clamp(p.x + k * b.r * 3, b.r, W - b.r);
         b.y = side === "player" ? p.y - b.r - 1 : p.y + p.h + b.r + 1;
-        if (g.phase !== "play" || g.time < b.serveAt || k > 0) continue;
+        if (g.phase !== "play" || g.time < b.serveAt || k > 0 || p.koUntil > g.time) continue;
         if (side === "player") {
           if (input.serve || Math.abs(g.player.vx) > geo.pvRef * 0.45 || g.time > b.serveAt + 1.6) {
             paddleStrike(b, "player", true);
@@ -933,12 +1103,13 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       g.shake = 20;
       g.flash = 0.5;
       g.flashColor = "#ffffff";
-      addText("SCREEN DESTROYED", W / 2, H / 2, "#ffffff", geo.narrow ? 24 : 36, 1.6);
+      addText("SCREEN DESTROYED", W / 2, H / 2, "#ffffff", geo.narrow ? 16 : 26, 1.6);
     };
 
     const update = (dt: number) => {
       g.time += dt;
       spritesThisFrame = 0;
+      debrisBudget = DEBRIS_PER_FRAME;
       let sim = dt;
       if (g.hitStop > 0) {
         g.hitStop -= dt;
@@ -958,7 +1129,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         }
         if (g.time >= introEnd) {
           g.phase = "play";
-          addText("BREAK IT!", W / 2, H / 2, "#ffffff", geo.narrow ? 28 : 40, 1.1);
+          addText("BREAK IT!", W / 2, H / 2, "#ffffff", geo.narrow ? 20 : 30, 1.1);
         }
       }
 
@@ -970,7 +1141,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         g.level = 1 + Math.floor(g.d * 4.999);
         if (g.level > g.maxLevel) {
           g.maxLevel = g.level;
-          addText(`CPU LEVEL ${g.level}`, W / 2, g.cpu.y + 60, CPU_COLOR, 18, 1.4);
+          addText(`CPU LEVEL ${g.level}`, W / 2, H / 2 + 80, CPU_COLOR, 12, 1.4);
         }
       }
       if (g.phase !== "over") updateCpu(sim);
@@ -979,10 +1150,19 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
       for (const b of g.balls) {
         if (b.held) continue;
+        // The fuse burns down wherever the bomb is, even on the side that sent it
+        if (b.bomb) {
+          b.bomb.fuse -= sim;
+          if (b.bomb.fuse <= 0) {
+            explode(b, b.x, b.y, null, true, true);
+            continue;
+          }
+        }
         const speed = Math.hypot(b.vx, b.vy);
         const n = clamp(Math.ceil((speed * sim) / (b.r * 0.5)), 1, 24);
         const h = sim / n;
-        for (let i = 0; i < n; i++) stepBall(b, h);
+        for (let i = 0; i < n && !b.held; i++) stepBall(b, h);
+        if (b.held) continue; // exploded on a paddle mid-step
         b.trail.push({ x: b.x, y: b.y });
         if (b.trail.length > 14) b.trail.shift();
         if (b.y - b.r > H) goal("cpu", b);
@@ -994,13 +1174,13 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
           g.multiballDone = true;
           const behind: Side = g.score.cpu < g.score.player ? "cpu" : "player";
           g.balls.push(makeBall(behind, g.time + 0.8));
-          addText("MULTIBALL!", W / 2, H / 2 + 44, "#f8d878", geo.narrow ? 22 : 28, 1.3);
+          addText("MULTIBALL!", W / 2, H / 2 + 44, "#f8d878", geo.narrow ? 14 : 20, 1.3);
         }
         // Stragglers are hard to hit, so the last 15% of the screen starts falling apart by itself
         if (aliveCount / total < 0.15 && g.time >= g.crumbleAt) {
           if (!g.collapsing) {
             g.collapsing = true;
-            addText("THE SCREEN IS COLLAPSING", W / 2, H / 2 - 40, "#f8d878", geo.narrow ? 16 : 22, 1.6);
+            addText("THE SCREEN IS COLLAPSING", W / 2, H / 2 - 40, "#f8d878", geo.narrow ? 10 : 14, 1.6);
           }
           g.crumbleAt = g.time + 0.12;
           let pick = Math.floor(Math.random() * total);
@@ -1021,6 +1201,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
           cpuShards: g.shards.cpu,
           bestCombo: g.bestCombo,
           topSpeed: g.topSpeed,
+          kos: g.kos,
         });
       }
 
@@ -1058,219 +1239,303 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }
       g.texts = g.texts.filter((t) => t.life > 0);
 
+      for (const s of g.shockwaves) {
+        s.life -= sim;
+        s.r = s.maxR * (1 - Math.max(0, s.life) / 0.6);
+      }
+      g.shockwaves = g.shockwaves.filter((s) => s.life > 0);
+
       g.shake *= Math.exp(-dt * 10);
       if (g.shake < 0.2) g.shake = 0;
       g.flash = Math.max(0, g.flash - dt);
     };
 
-    // ---------- rendering ----------
+    // ---------- rendering (8-bit) ----------
 
-    const roundRect = (x: number, y: number, w: number, h: number, r: number) => {
-      ctx.beginPath();
-      if (typeof ctx.roundRect === "function") ctx.roundRect(x, y, w, h, r);
-      else ctx.rect(x, y, w, h);
-    };
+    // Everything the game draws itself sits on a chunky pixel grid
+    const snap = (v: number, u: number) => Math.round(v / u) * u;
 
-    const drawPaddle = (p: Paddle, color: string) => {
-      const x = p.x - p.w / 2;
-      // Motion ghost when swiping fast
-      const sw = Math.abs(p.vx) / geo.pvRef;
-      if (sw > 0.35) {
-        ctx.globalAlpha = Math.min(0.35, sw * 0.25);
-        ctx.fillStyle = color;
-        roundRect(x - p.vx * 0.035, p.y, p.w, p.h, p.h / 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = "#000000";
-      roundRect(x - 2, p.y - 2, p.w + 4, p.h + 4, p.h);
-      ctx.fill();
-      ctx.globalAlpha = 0.3;
-      ctx.fillStyle = color;
-      roundRect(x - 5, p.y - 5, p.w + 10, p.h + 10, p.h);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      roundRect(x, p.y, p.w, p.h, p.h / 2);
-      ctx.fill();
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
-      roundRect(x + 4, p.y + 2, p.w - 8, Math.max(2, p.h * 0.22), 2);
-      ctx.fill();
-    };
-
-    // The ball has to stay readable over white pages, pink/green blobs, dark holes and
-    // flying shards: neon yellow (not in the site palette), black outline, dark halo,
-    // a spinning ring, and drawn larger than its hit size.
-    const drawBall = (b: Ball) => {
-      const fast = Math.hypot(b.vx, b.vy) >= smashSpeed();
-      const tint = fast ? SMASH_COLOR : b.owner === "player" ? PLAYER_COLOR : CPU_COLOR;
-      const r = b.r * 1.4;
-
-      // Trail: dark underlay so it shows on white, yellow core tinted by owner
-      ctx.lineCap = "round";
-      for (const [style, widthK, alphaK] of [
-        ["#000000", 1.5, 0.35],
-        [BALL_COLOR, 1, 0.7],
-        [tint, 0.45, 0.9],
-      ] as const) {
-        ctx.strokeStyle = style;
-        for (let i = 1; i < b.trail.length; i++) {
-          const k = i / b.trail.length;
-          ctx.globalAlpha = k * alphaK;
-          ctx.lineWidth = r * 1.6 * k * widthK;
-          ctx.beginPath();
-          ctx.moveTo(b.trail[i - 1].x, b.trail[i - 1].y);
-          ctx.lineTo(b.trail[i].x, b.trail[i].y);
-          ctx.stroke();
+    // Pixel-art sprite centred on (x, y): one string per row, one char per pixel,
+    // looked up in the palette ("." = transparent)
+    const sprite = (rows: string[], x: number, y: number, u: number, palette: Record<string, string>) => {
+      const ox = Math.round(x - (rows[0].length * u) / 2);
+      const oy = Math.round(y - (rows.length * u) / 2);
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        for (let c = 0; c < row.length; c++) {
+          const color = palette[row[c]];
+          if (!color) continue;
+          ctx.fillStyle = color;
+          ctx.fillRect(ox + c * u, oy + r * u, u, u);
         }
       }
-
-      // Dark halo separates the ball from bright parts of the page
-      ctx.globalAlpha = 0.45;
-      ctx.fillStyle = "#000000";
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, r * 2.1, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = fast ? 0.55 : 0.35;
-      ctx.fillStyle = fast ? SMASH_COLOR : BALL_COLOR;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, r * 1.7, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Pulsing, spinning dashed ring: motion catches the eye
-      const pulse = 1 + 0.12 * Math.sin(g.time * 12 + b.id);
-      ctx.globalAlpha = 0.95;
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = fast ? SMASH_COLOR : "#ffffff";
-      ctx.setLineDash([r * 0.9, r * 0.6]);
-      ctx.lineDashOffset = -g.time * 60;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, r * 2.25 * pulse, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Body
-      ctx.globalAlpha = 1;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, r + 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#000000";
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = BALL_COLOR;
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = tint;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, r * 0.62, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(b.x - r * 0.3, b.y - r * 0.3, r * 0.25, 0, Math.PI * 2);
-      ctx.fill();
     };
 
-    // Little arrow on the bottom edge showing where each incoming ball will cross your paddle line
-    const drawLandingMarkers = () => {
-      const P = g.player;
-      for (const b of g.balls) {
-        if (b.held || b.vy <= 0 || b.y > P.y) continue;
-        const t = (P.y - b.y) / b.vy;
-        if (t > 1.6) continue;
-        const span = W - 2 * b.r;
-        let u = (b.x + b.vx * t - b.r) % (2 * span);
-        if (u < 0) u += 2 * span;
-        if (u > span) u = 2 * span - u;
-        const x = b.r + u;
-        const y = P.y + P.h + 8;
-        ctx.globalAlpha = clamp(1.6 - t, 0.25, 0.9);
-        ctx.fillStyle = "#000000";
-        ctx.beginPath();
-        ctx.moveTo(x, y - 3);
-        ctx.lineTo(x - 10, y + 12);
-        ctx.lineTo(x + 10, y + 12);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = BALL_COLOR;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x - 7, y + 10);
-        ctx.lineTo(x + 7, y + 10);
-        ctx.closePath();
-        ctx.fill();
+    // Filled pixel disk, one rect per row
+    const pixelDisk = (x: number, y: number, radius: number, u: number) => {
+      const cx0 = snap(x, u);
+      const cy0 = snap(y, u);
+      for (let yy = -radius; yy <= radius; yy += u) {
+        const half = snap(Math.sqrt(Math.max(0, radius * radius - yy * yy)), u);
+        if (half > 0) ctx.fillRect(cx0 - half, cy0 + yy, half * 2, u);
       }
-      ctx.globalAlpha = 1;
     };
 
-    const outlinedText = (text: string, x: number, y: number, color: string, alpha = 1) => {
+    // Text with a hard 8-bit drop shadow; shrinks itself to fit the screen width
+    const pixelText = (text: string, x: number, y: number, color: string, size: number, alpha = 1) => {
+      ctx.font = `${size}px ${FONT}`;
+      const w = ctx.measureText(text).width;
+      if (w > W - 16) {
+        size = Math.max(6, Math.floor((size * (W - 16)) / w));
+        ctx.font = `${size}px ${FONT}`;
+      }
+      const s = Math.max(2, Math.round(size / 6));
       ctx.globalAlpha = alpha;
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "rgba(0,0,0,0.7)";
-      ctx.strokeText(text, x, y);
+      ctx.fillStyle = "#000000";
+      ctx.fillText(text, x + s, y + s);
       ctx.fillStyle = color;
       ctx.fillText(text, x, y);
       ctx.globalAlpha = 1;
     };
 
+    const drawPaddle = (p: Paddle, color: string) => {
+      const u = geo.u;
+      const x0 = snap(p.x - p.w / 2, u);
+      const y0 = snap(p.y, u);
+      const w = Math.max(u * 6, snap(p.w, u));
+      const h = Math.max(u * 3, snap(p.h, u));
+
+      if (p.koUntil > g.time) {
+        // Knocked out: a blinking dotted outline shows where it comes back
+        const left = p.koUntil - g.time;
+        if (left < 1.2 && Math.floor(left * 8) % 2 === 0) {
+          ctx.fillStyle = color;
+          for (let x = x0; x < x0 + w; x += u * 2) {
+            ctx.fillRect(x, y0, u, u);
+            ctx.fillRect(x, y0 + h - u, u, u);
+          }
+        }
+        return;
+      }
+
+      // Motion ghost when swiping fast
+      const sw = Math.abs(p.vx) / geo.pvRef;
+      if (sw > 0.35) {
+        ctx.globalAlpha = Math.min(0.35, sw * 0.25);
+        ctx.fillStyle = color;
+        ctx.fillRect(snap(x0 - p.vx * 0.035, u), y0, w, h);
+        ctx.globalAlpha = 1;
+      }
+      // Black outline with notched corners, body, highlight row, shadow row, lighter end caps
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(x0 - u, y0, w + 2 * u, h);
+      ctx.fillRect(x0, y0 - u, w, h + 2 * u);
+      ctx.fillStyle = color;
+      ctx.fillRect(x0, y0, w, h);
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.fillRect(x0 + u, y0, w - 2 * u, u);
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.fillRect(x0 + u, y0 + h - u, w - 2 * u, u);
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.fillRect(x0, y0 + u, u, h - 2 * u);
+      ctx.fillRect(x0 + w - u, y0 + u, u, h - 2 * u);
+    };
+
+    const BALL_SPRITE = [
+      "..KKKK..",
+      ".KYYYYK.",
+      "KYWWYYYK",
+      "KYWYYYYK",
+      "KYYYYYTK",
+      "KYYYYTTK",
+      ".KYYTTK.",
+      "..KKKK..",
+    ];
+    const BOMB_SPRITE = [
+      "......SS..",
+      ".....F....",
+      "....FF....",
+      "...OOOO...",
+      "..ODDDDO..",
+      ".ODGGDDDO.",
+      ".ODGDDDDO.",
+      ".ODDDDDDO.",
+      ".ODDDDDDO.",
+      "..ODDDDO..",
+      "...OOOO...",
+    ];
+
+    // The ball has to stay readable over white pages, colour blobs, dark holes and flying
+    // shards: neon yellow (not in the site palette), black outline, a dark pixel halo and a
+    // spinning ring of pixels. Bombs are a black bomb with a white outline and a lit fuse.
+    const drawBall = (b: Ball) => {
+      if (b.held && (b.held === "player" ? g.player : g.cpu).koUntil > g.time) return; // its paddle is gone
+      const fast = !b.bomb && Math.hypot(b.vx, b.vy) >= smashSpeed();
+      const tint = fast ? SMASH_COLOR : b.owner === "player" ? PLAYER_COLOR : CPU_COLOR;
+      const main = b.bomb ? BOMB_COLOR : fast ? SMASH_COLOR : BALL_COLOR;
+      const u = Math.max(3, Math.round((b.r * 2.8) / 8));
+
+      // Trail: chunky squares that shrink and fade
+      for (let i = 0; i < b.trail.length; i += 2) {
+        const k = (i + 1) / b.trail.length;
+        const s = Math.max(u, snap(u * 3 * k, u));
+        const tx = Math.round(b.trail[i].x - s / 2);
+        const ty = Math.round(b.trail[i].y - s / 2);
+        ctx.globalAlpha = k * 0.85;
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(tx - 1, ty - 1, s + 2, s + 2);
+        ctx.fillStyle = i % 4 === 0 ? main : tint;
+        ctx.fillRect(tx, ty, s, s);
+      }
+
+      // Dark halo and a soft glow of the ball colour
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle = "#000000";
+      pixelDisk(b.x, b.y, u * 6, u);
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = main;
+      pixelDisk(b.x, b.y, u * 5, u);
+
+      // Ring of pixels orbiting the ball
+      const pulse = 1 + 0.12 * Math.sin(g.time * 12 + b.id);
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = b.bomb ? BOMB_COLOR : fast ? SMASH_COLOR : "#ffffff";
+      for (let i = 0; i < 8; i++) {
+        const a = g.time * 4 + (i * Math.PI) / 4;
+        ctx.fillRect(Math.round(b.x + Math.cos(a) * u * 7 * pulse - u / 2), Math.round(b.y + Math.sin(a) * u * 7 * pulse - u / 2), u, u);
+      }
+      ctx.globalAlpha = 1;
+
+      if (b.bomb) {
+        const fuse = b.bomb.fuse;
+        const rate = fuse < 1 ? 16 : fuse < 2.5 ? 8 : 3;
+        const hot = Math.floor(g.time * rate) % 2 === 0 && fuse < 2.5;
+        const spark = ["#ffe600", "#ff7a00", "#ffffff", "#ff2d2d"][Math.floor(g.time * 20) % 4];
+        sprite(BOMB_SPRITE, b.x, b.y - u, u, { O: "#ffffff", D: hot ? "#d01010" : "#1b1b1b", G: "#8a8a8a", F: "#c08040", S: spark });
+        // Countdown above the fuse
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        pixelText(String(Math.ceil(fuse)), b.x, b.y - u * 7, hot ? "#ff2d2d" : "#ffffff", 10);
+      } else {
+        sprite(BALL_SPRITE, b.x, b.y, u, { K: "#000000", Y: main, W: "#ffffff", T: tint });
+      }
+    };
+
+    // Pixel arrow on the bottom edge showing where each incoming ball will cross your paddle line
+    const drawLandingMarkers = () => {
+      const P = g.player;
+      const u = geo.u;
+      for (const b of g.balls) {
+        if (b.held || b.vy <= 0 || b.y > P.y) continue;
+        const t = (P.y - b.y) / b.vy;
+        if (t > 1.6) continue;
+        const span = W - 2 * b.r;
+        let q = (b.x + b.vx * t - b.r) % (2 * span);
+        if (q < 0) q += 2 * span;
+        if (q > span) q = 2 * span - q;
+        const x = Math.round(b.r + q);
+        const y = snap(P.y + P.h + 8, u);
+        ctx.globalAlpha = clamp(1.6 - t, 0.25, 0.9);
+        for (const [color, off] of [
+          ["#000000", u],
+          [b.bomb ? BOMB_COLOR : BALL_COLOR, 0],
+        ] as const) {
+          ctx.fillStyle = color;
+          for (let i = 0; i < 3; i++) ctx.fillRect(x - (i + 0.5) * u + off, y + i * u + off, (2 * i + 1) * u, u);
+        }
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    // Bomb meter: 8 segments under each score; blinks when a bomb is ready
+    const drawMeter = (side: Side, x: number, y: number, alignRight: boolean) => {
+      const n = 8;
+      const seg = geo.narrow ? 5 : 7;
+      const segH = geo.narrow ? 6 : 8;
+      const gap = 2;
+      const barW = n * (seg + gap) - gap;
+      const full = g.meter[side] >= 1;
+      const blink = full && Math.floor(g.time * 6) % 2 === 0;
+      const lit = full ? n : Math.floor(g.meter[side] * n);
+      ctx.font = `8px ${FONT}`;
+      const lw = ctx.measureText("BOMB").width;
+      const bx = alignRight ? x - barW : x + lw + 8;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      pixelText("BOMB", alignRight ? x - barW - 8 - lw : x, y, full ? (blink ? "#ffffff" : BOMB_COLOR) : "rgba(255,255,255,0.85)", 8);
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(bx - 2, y - 2, barW + 4, segH + 4);
+      for (let i = 0; i < n; i++) {
+        ctx.fillStyle = i < lit ? (blink ? "#ffffff" : BOMB_COLOR) : "rgba(255,255,255,0.2)";
+        ctx.fillRect(bx + i * (seg + gap), y, seg, segH);
+      }
+    };
+
     const drawHud = () => {
       const top = 12;
-      const size = geo.narrow ? 18 : 24;
+      const size = geo.narrow ? 12 : 16;
       ctx.textBaseline = "top";
-      ctx.font = `bold ${size}px ${FONT}`;
       ctx.textAlign = "left";
-      outlinedText(`YOU ${g.score.player}`, 14, top, PLAYER_COLOR);
+      pixelText(`YOU ${g.score.player}`, 14, top, PLAYER_COLOR, size);
       ctx.textAlign = "right";
-      outlinedText(`${g.score.cpu} CPU`, W - 58, top, CPU_COLOR);
+      pixelText(`${g.score.cpu} CPU`, W - 58, top, CPU_COLOR, size);
 
       // Tug-of-war bar: how much of the screen each side has destroyed
       const bw = geo.narrow ? W - 76 : Math.min(W * 0.32, 340);
       const bx = geo.narrow ? 14 : (W - bw) / 2;
-      const by = geo.narrow ? top + size + 8 : top + 6;
+      const by = geo.narrow ? top + size + 8 : top + 2;
       const bh = 8;
-      ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
       ctx.fillStyle = "rgba(255,255,255,0.2)";
       ctx.fillRect(bx, by, bw, bh);
       ctx.fillStyle = PLAYER_COLOR;
-      ctx.fillRect(bx, by, (bw * g.shards.player) / total, bh);
+      ctx.fillRect(bx, by, Math.round((bw * g.shards.player) / total), bh);
       ctx.fillStyle = CPU_COLOR;
-      const cw = (bw * g.shards.cpu) / total;
+      const cw = Math.round((bw * g.shards.cpu) / total);
       ctx.fillRect(bx + bw - cw, by, cw, bh);
-      ctx.font = `bold 11px ${FONT}`;
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      for (let x = bx + 6; x < bx + bw; x += 6) ctx.fillRect(Math.round(x), by, 1, bh);
       ctx.textAlign = "center";
       const left = Math.round((aliveCount / total) * 100);
-      outlinedText(`SCREEN ${left}% LEFT · CPU LV ${g.level}`, bx + bw / 2, by + bh + 4, "rgba(255,255,255,0.9)");
+      pixelText(`SCREEN ${left}% - CPU LV${g.level}`, bx + bw / 2, by + bh + 6, "#ffffff", 8);
+
+      const my = geo.narrow ? by + bh + 22 : top + size + 12;
+      drawMeter("player", 14, my, false);
+      drawMeter("cpu", W - 58, my, true);
 
       // Bottom: controls hint at the start, then the speed of your last return
       ctx.textBaseline = "bottom";
-      ctx.font = `bold ${geo.narrow ? 11 : 13}px ${FONT}`;
+      const small = geo.narrow ? 8 : 10;
       const hintUntil = introEnd + 7;
       if (g.time < hintUntil) {
         const hint = coarse
-          ? "DRAG OR TAP TO MOVE · SWIPE FAST = SMASH · ✕ TO EXIT"
-          : "MOUSE OR ← → TO MOVE · SWIPE FAST (OR SHIFT) = SMASH · ESC TO EXIT";
-        const fade = clamp(hintUntil - g.time, 0, 1);
+          ? "DRAG TO MOVE - SWIPE FAST = SMASH"
+          : geo.narrow
+            ? "MOUSE MOVES - SWIPE = SMASH - ESC"
+            : "MOUSE OR ARROWS MOVE - SWIPE FAST/SHIFT = SMASH - ESC EXIT";
         ctx.textAlign = "center";
-        outlinedText(geo.narrow && !coarse ? "MOUSE TO MOVE · SWIPE = SMASH · ESC EXIT" : hint, W / 2, H - 10, "#ffffff", fade);
+        pixelText(hint, W / 2, H - 10, "#ffffff", small, clamp(hintUntil - g.time, 0, 1));
       } else if (g.lastSpeed > 0) {
         ctx.textAlign = "left";
         const hot = g.lastSpeed >= toKmh(smashSpeed());
-        outlinedText(`⚡ ${g.lastSpeed} km/h`, 14, H - 10, hot ? SMASH_COLOR : PLAYER_COLOR);
+        pixelText(`SPD ${g.lastSpeed}`, 14, H - 10, hot ? SMASH_COLOR : PLAYER_COLOR, small);
         ctx.textAlign = "right";
-        outlinedText(`BEST ${g.topSpeed}`, W - 14, H - 10, "rgba(255,255,255,0.9)");
+        pixelText(`BEST ${g.topSpeed}`, W - 14, H - 10, "#ffffff", small);
       }
 
       if (g.phase === "intro" && g.time < introEnd - 0.2) {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.font = `bold ${geo.narrow ? 26 : 40}px ${FONT}`;
         const blink = Math.floor(g.time * 4) % 2 === 0 ? 1 : 0.75;
-        outlinedText("SCREEN FROZEN", W / 2, H / 2, "#ffffff", blink);
+        pixelText("SCREEN FROZEN", W / 2, H / 2, "#ffffff", geo.narrow ? 18 : 32, blink);
       }
     };
 
     const draw = () => {
       const shx = g.shake ? rand(-1, 1) * g.shake * motion : 0;
       const shy = g.shake ? rand(-1, 1) * g.shake * motion : 0;
+      ctx.imageSmoothingEnabled = false;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.drawImage(bg, 0, 0);
       ctx.setTransform(dpr, 0, 0, dpr, shx * dpr, shy * dpr);
@@ -1291,7 +1556,20 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       for (const s of g.sparks) {
         ctx.globalAlpha = Math.min(1, (s.life / s.maxLife) * 1.5);
         ctx.fillStyle = s.color;
-        ctx.fillRect(s.x - s.size / 2, s.y - s.size / 2, s.size, s.size);
+        ctx.fillRect(Math.round(s.x - s.size / 2), Math.round(s.y - s.size / 2), Math.round(s.size), Math.round(s.size));
+      }
+
+      // Bomb shockwaves: an expanding ring of chunky pixels
+      for (const s of g.shockwaves) {
+        const k = Math.max(0, s.life) / 0.6;
+        const u = geo.u * 2;
+        const n = Math.max(12, Math.floor((2 * Math.PI * s.r) / (u * 2)));
+        ctx.globalAlpha = k;
+        ctx.fillStyle = k > 0.5 ? "#ffffff" : BOMB_COLOR;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          ctx.fillRect(snap(s.x + Math.cos(a) * s.r, u), snap(s.y + Math.sin(a) * s.r, u), u, u);
+        }
       }
       ctx.globalAlpha = 1;
 
@@ -1317,8 +1595,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       for (const t of g.texts) {
         const k = t.life / t.maxLife;
         const pop = k > 0.85 ? 1 + (k - 0.85) * 2.5 : 1;
-        ctx.font = `bold ${Math.round(t.size * pop)}px ${FONT}`;
-        outlinedText(t.text, t.x, t.y, t.color, Math.min(1, k * 2.5));
+        const size = Math.round(t.size * pop);
+        ctx.font = `${size}px ${FONT}`;
+        const half = Math.min(ctx.measureText(t.text).width, W - 16) / 2;
+        pixelText(t.text, clamp(t.x, half + 8, W - half - 8), t.y, t.color, size, Math.min(1, k * 2.5));
       }
     };
 
@@ -1358,15 +1638,29 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }, 250);
     };
 
+    let konamiPos = 0;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         exit();
         return;
       }
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      // Let the overlay's own buttons (and any field) handle their keys
+      // Fields keep all their keys; a focused button (✕, Play again) keeps Enter/Space
+      // for itself but must not swallow the arrows
       const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === "BUTTON" || el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      if (el && el.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
+      // Secret: ↑ ↑ ↓ ↓ ← → ← → B A arms a bomb (once per match)
+      const key = e.key.toLowerCase();
+      konamiPos = key === KONAMI[konamiPos] ? konamiPos + 1 : key === KONAMI[0] ? 1 : 0;
+      if (konamiPos === KONAMI.length) {
+        konamiPos = 0;
+        secretBomb();
+      }
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault(); // part of the code; also keeps the page behind from scrolling
+        return;
+      }
       // A press is applied right away as a nudge, so quick taps that start and end
       // between two frames still move the paddle; holding keeps it gliding.
       const step = Math.max(W * 0.05, 30);
@@ -1396,7 +1690,12 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     };
 
     let mouseSeen = false;
+    let lastMouseX: number | null = null;
     const onMouseMove = (e: MouseEvent) => {
+      // Browsers also fire mousemove when the mouse hasn't moved (same coordinates);
+      // honouring those snapped the paddle back under a resting cursor and undid the arrow keys
+      if (lastMouseX !== null && Math.abs(e.clientX - lastMouseX) < 1) return;
+      lastMouseX = e.clientX;
       input.pointerX = toGameX(e.clientX);
       if (!mouseSeen) {
         mouseSeen = true;
@@ -1431,11 +1730,25 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       input.pointerX = toGameX(t.clientX);
       if (Math.abs(t.clientX - touchStartX) > 14 || Math.abs(t.clientY - touchStartY) > 14) touchMoved = true;
     };
+    let scoreTaps: number[] = [];
     const onTouchEnd = (e: TouchEvent) => {
       if (e.touches.length > 0) return;
+      const now = performance.now();
+      const tap = !touchMoved && now - touchStartTime < 250;
       // Mid-rally a tap just moves the paddle (tapping where the ball lands is how you
       // play); during the intro and on the result screen a quick tap still exits.
-      if (g.phase !== "play" && !touchMoved && performance.now() - touchStartTime < 250) exit();
+      if (g.phase !== "play" && tap) {
+        exit();
+        return;
+      }
+      // Secret on touch: triple-tap your score (top left) to arm a bomb, once per match
+      if (tap && toGameX(touchStartX) < Math.min(W * 0.5, 200) && touchStartY < (geo.narrow ? 80 : 60)) {
+        scoreTaps = [...scoreTaps.filter((t) => now - t < 900), now];
+        if (scoreTaps.length >= 3) {
+          scoreTaps = [];
+          secretBomb();
+        }
+      }
     };
 
     window.addEventListener("resize", onResize);
@@ -1492,70 +1805,77 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
   }, []);
 
   const headline = result ? (result.winner === "player" ? "YOU WIN!" : result.winner === "cpu" ? "CPU WINS" : "DRAW") : "";
+  const hardShadow = "4px 4px 0 #000";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Screensaver game"
+      className={pixelFont.className}
       style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#06070b" }}
     >
       <canvas
         ref={canvasRef}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "none", touchAction: "none" }}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "none", touchAction: "none", imageRendering: "pixelated" }}
       />
       <button
         type="button"
         onClick={exit}
         aria-label="Exit game and return to the website"
-        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-black/60 text-lg leading-none text-white hover:bg-black/80"
-        style={{ cursor: "pointer" }}
+        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center border-2 border-white bg-black text-xs leading-none text-white hover:bg-[#222]"
+        style={{ cursor: "pointer", boxShadow: hardShadow }}
       >
-        ✕
+        X
       </button>
       {result && (
         <div className="absolute inset-0 flex items-center justify-center p-4" style={{ cursor: "default" }}>
           <div
-            className="w-full max-w-sm rounded-2xl border border-white/15 bg-[#08090e]/90 p-6 text-center text-white shadow-2xl"
-            style={{ fontFamily: FONT }}
+            className="w-full max-w-sm border-4 border-white bg-[#08090e] p-5 text-center text-white"
+            style={{ boxShadow: "8px 8px 0 #000" }}
           >
-            <p className="text-xs tracking-[0.3em] text-white/60">SCREEN DESTROYED</p>
+            <p className="text-[8px] leading-relaxed text-white/70">SCREEN DESTROYED</p>
             <h2
-              className="mt-2 text-4xl font-bold"
-              style={{ color: result.winner === "player" ? PLAYER_COLOR : result.winner === "cpu" ? CPU_COLOR : "#ffffff" }}
+              className="mt-3 text-2xl leading-tight"
+              style={{ color: result.winner === "player" ? PLAYER_COLOR : result.winner === "cpu" ? CPU_COLOR : "#ffffff", textShadow: "3px 3px 0 #000" }}
             >
               {headline}
             </h2>
-            <div className="mt-4 flex justify-center gap-8 text-2xl font-bold">
+            <div className="mt-4 flex justify-center gap-6 text-sm">
               <span style={{ color: PLAYER_COLOR }}>YOU {result.player}</span>
               <span style={{ color: CPU_COLOR }}>CPU {result.cpu}</span>
             </div>
-            <dl className="mt-4 grid grid-cols-2 gap-y-1 text-left text-sm text-white/80">
-              <dt>Glass smashed</dt>
+            <dl className="mt-4 grid grid-cols-2 gap-y-2 text-left text-[9px] leading-relaxed text-white/85">
+              <dt>GLASS SMASHED</dt>
               <dd className="text-right">
                 {result.playerShards} / {result.cpuShards}
               </dd>
-              <dt>Best combo</dt>
+              <dt>PADDLES KO&apos;D</dt>
+              <dd className="text-right">{result.kos}</dd>
+              <dt>BEST COMBO</dt>
               <dd className="text-right">{result.bestCombo}</dd>
-              <dt>Top speed</dt>
-              <dd className="text-right">{result.topSpeed} km/h</dd>
+              <dt>TOP SPEED</dt>
+              <dd className="text-right">{result.topSpeed} KM/H</dd>
             </dl>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-6 flex gap-3 text-[10px]">
               <button
                 type="button"
-                onClick={() => restartRef.current()}
-                className="flex-1 rounded-lg px-4 py-3 font-bold text-black"
-                style={{ background: PLAYER_COLOR, cursor: "pointer" }}
+                onClick={(e) => {
+                  e.currentTarget.blur(); // keep keyboard focus off the button so the arrows drive the paddle
+                  restartRef.current();
+                }}
+                className="flex-1 border-2 border-black px-3 py-3 text-black"
+                style={{ background: PLAYER_COLOR, cursor: "pointer", boxShadow: hardShadow }}
               >
-                Play again
+                PLAY AGAIN
               </button>
               <button
                 type="button"
                 onClick={exit}
-                className="flex-1 rounded-lg border border-white/30 px-4 py-3 font-bold text-white hover:bg-white/10"
-                style={{ cursor: "pointer" }}
+                className="flex-1 border-2 border-white bg-black px-3 py-3 text-white hover:bg-[#222]"
+                style={{ cursor: "pointer", boxShadow: hardShadow }}
               >
-                Back to site
+                BACK TO SITE
               </button>
             </div>
           </div>

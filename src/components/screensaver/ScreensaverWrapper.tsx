@@ -19,7 +19,7 @@ export const ScreensaverWrapper = ({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const captureScreen = useCallback(async (): Promise<HTMLCanvasElement | null> => {
+  const captureScreen = useCallback(async (scale: number): Promise<HTMLCanvasElement | null> => {
     // html2canvas scrolls its cloned page to the current position; with the site's smooth
     // scrolling that scroll animates and the capture comes out offset, so make it instant.
     const root = document.documentElement;
@@ -32,18 +32,20 @@ export const ScreensaverWrapper = ({
         y: window.scrollY,
         width: window.innerWidth,
         height: window.innerHeight,
-        scale: Math.min(window.devicePixelRatio || 1, 1.5),
+        scale,
         ignoreElements: (el) => el.hasAttribute("data-screensaver-ignore"),
         useCORS: true,
         allowTaint: false, // Changed to false for Safari compatibility
         backgroundColor: "#ffffff",
         logging: false,
-        imageTimeout: 5000, // Add timeout
+        // Don't wait long for images that are still loading: a slow image used to push the
+        // whole capture past the time limit, and phones then got no screenshot at all
+        imageTimeout: 1500,
         removeContainer: true,
         foreignObjectRendering: false, // Disable for Safari compatibility
       });
-      
-      return canvas;
+
+      return canvas.width > 0 && canvas.height > 0 ? canvas : null;
     } catch (error) {
       console.error("Failed to capture screen:", error);
       return null;
@@ -54,16 +56,23 @@ export const ScreensaverWrapper = ({
 
   const startScreensaver = useCallback(async () => {
     setIsCapturing(true);
-    
+
+    // Phones are slower and have tighter canvas limits: capture at 1x and allow more time
+    const touch = window.matchMedia("(pointer: coarse)").matches;
+    const TIMED_OUT = "timeout" as const;
+    const withTimeout = (p: Promise<HTMLCanvasElement | null>, ms: number) =>
+      Promise.race([p, new Promise<typeof TIMED_OUT>((resolve) => setTimeout(() => resolve(TIMED_OUT), ms))]);
+
     // Try to capture the current screen, but don't block if it fails
     let image: HTMLCanvasElement | null = null;
     try {
-      // Add a timeout for the capture in case it hangs
-      const capturePromise = captureScreen();
-      const timeoutPromise = new Promise<null>((resolve) => 
-        setTimeout(() => resolve(null), 3000)
-      );
-      image = await Promise.race([capturePromise, timeoutPromise]);
+      const first = await withTimeout(captureScreen(touch ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)), touch ? 7000 : 5000);
+      if (first !== TIMED_OUT) image = first;
+      // If it failed outright (not just slow, which would still be running), retry once lighter
+      if (first === null) {
+        const second = await withTimeout(captureScreen(0.6), 4000);
+        if (second !== TIMED_OUT) image = second;
+      }
     } catch (error) {
       console.error("Screen capture failed:", error);
     }
@@ -109,8 +118,17 @@ export const ScreensaverWrapper = ({
   // Shortcut for trying the game without waiting for the idle timeout: add ?pong to any URL
   useEffect(() => {
     if (!new URLSearchParams(window.location.search).has("pong")) return;
-    const t = setTimeout(() => startScreensaver(), 1500);
-    return () => clearTimeout(t);
+    // Wait for the page (and its images) to finish loading so there's something to capture
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const go = () => {
+      t = setTimeout(() => startScreensaver(), 800);
+    };
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("load", go);
+    };
   }, [startScreensaver]);
 
   useEffect(() => {
