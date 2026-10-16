@@ -15,15 +15,25 @@ export const ScreensaverWrapper = ({
 }: ScreensaverWrapperProps) => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [showScreensaver, setShowScreensaver] = useState(false);
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<HTMLCanvasElement | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const captureScreen = useCallback(async (): Promise<string | null> => {
+  const captureScreen = useCallback(async (): Promise<HTMLCanvasElement | null> => {
+    // html2canvas scrolls its cloned page to the current position; with the site's smooth
+    // scrolling that scroll animates and the capture comes out offset, so make it instant.
+    const root = document.documentElement;
+    const prevScrollBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
     try {
-      // Capture the entire document body
+      // Capture only what is on screen right now: the game breaks this "frozen screen" apart
       const canvas = await html2canvas(document.body, {
-        scale: 0.5, // Lower scale for performance and pixelation effect
+        x: window.scrollX,
+        y: window.scrollY,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        scale: Math.min(window.devicePixelRatio || 1, 1.5),
+        ignoreElements: (el) => el.hasAttribute("data-screensaver-ignore"),
         useCORS: true,
         allowTaint: false, // Changed to false for Safari compatibility
         backgroundColor: "#ffffff",
@@ -33,10 +43,12 @@ export const ScreensaverWrapper = ({
         foreignObjectRendering: false, // Disable for Safari compatibility
       });
       
-      return canvas.toDataURL("image/jpeg", 0.8);
+      return canvas;
     } catch (error) {
       console.error("Failed to capture screen:", error);
       return null;
+    } finally {
+      root.style.scrollBehavior = prevScrollBehavior;
     }
   }, []);
 
@@ -44,7 +56,7 @@ export const ScreensaverWrapper = ({
     setIsCapturing(true);
     
     // Try to capture the current screen, but don't block if it fails
-    let image: string | null = null;
+    let image: HTMLCanvasElement | null = null;
     try {
       // Add a timeout for the capture in case it hangs
       const capturePromise = captureScreen();
@@ -56,7 +68,7 @@ export const ScreensaverWrapper = ({
       console.error("Screen capture failed:", error);
     }
     
-    setBackgroundImage(image);
+    setSnapshot(image);
     setIsCapturing(false);
     
     // Always show the screensaver, even without background image
@@ -80,12 +92,19 @@ export const ScreensaverWrapper = ({
 
   const handleExit = useCallback(() => {
     setShowScreensaver(false);
-    setBackgroundImage(null);
+    setSnapshot(null);
     // Reset the timer after exiting
     setTimeout(() => {
       resetTimer();
     }, 100);
   }, [resetTimer]);
+
+  // Shortcut for trying the game without waiting for the idle timeout: add ?pong to any URL
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has("pong")) return;
+    const t = setTimeout(() => startScreensaver(), 1500);
+    return () => clearTimeout(t);
+  }, [startScreensaver]);
 
   useEffect(() => {
     // Events that indicate user activity
@@ -134,6 +153,7 @@ export const ScreensaverWrapper = ({
       {/* Capturing indicator (brief flash) */}
       {isCapturing && (
         <div
+          data-screensaver-ignore
           style={{
             position: "fixed",
             top: 0,
@@ -149,10 +169,7 @@ export const ScreensaverWrapper = ({
       
       {/* Screensaver */}
       {showScreensaver && (
-        <PongGame 
-          onExit={handleExit} 
-          backgroundImage={backgroundImage || undefined}
-        />
+        <PongGame onExit={handleExit} snapshot={snapshot} />
       )}
     </>
   );
