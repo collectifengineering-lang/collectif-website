@@ -92,7 +92,14 @@ export const ScreensaverWrapper = ({
 
   const handleExit = useCallback(() => {
     setShowScreensaver(false);
-    setSnapshot(null);
+    setSnapshot((prev) => {
+      // Free the capture's pixels now instead of waiting for GC (iOS canvas memory cap)
+      if (prev) {
+        prev.width = 0;
+        prev.height = 0;
+      }
+      return null;
+    });
     // Reset the timer after exiting
     setTimeout(() => {
       resetTimer();
@@ -146,7 +153,8 @@ export const ScreensaverWrapper = ({
 
   return (
     <>
-      <div ref={contentRef}>
+      {/* inert while the game is up: no scrolling, tabbing or screen-reader focus behind it */}
+      <div ref={contentRef} inert={showScreensaver}>
         {children}
       </div>
       

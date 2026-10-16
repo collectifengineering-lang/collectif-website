@@ -143,9 +143,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     const source = document.createElement("canvas");
     const screen = document.createElement("canvas");
     const bg = document.createElement("canvas");
-    const sourceCtx = source.getContext("2d") as CanvasRenderingContext2D;
-    const screenCtx = screen.getContext("2d") as CanvasRenderingContext2D;
-    const bgCtx = bg.getContext("2d") as CanvasRenderingContext2D;
+    const sourceCtx = source.getContext("2d");
+    const screenCtx = screen.getContext("2d");
+    const bgCtx = bg.getContext("2d");
+    if (!sourceCtx || !screenCtx || !bgCtx) return;
 
     // Glass mesh: a jittered grid, every cell split into two triangles (shards)
     let px = new Float32Array(0);
@@ -653,6 +654,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const hits: number[] = [];
       forShardsNear(b.x, b.y, breakRadius(b), (t) => hits.push(t), 0);
       for (const t of hits) {
+        if (!alive[t]) continue; // already fell in a cascade earlier in this loop
         if (!fast && g.time - hitAt[t] < 0.35) continue; // same touch, still over this pane
         hitAt[t] = g.time;
         if (!fast && hp[t] > 1) {
@@ -1031,8 +1033,14 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         d.rot += d.vr * sim;
         d.life -= sim;
       }
-      g.debris = g.debris.filter((d) => d.life > 0 && d.y < H + geo.S * 2);
-      if (g.debris.length > MAX_DEBRIS) g.debris.splice(0, g.debris.length - MAX_DEBRIS);
+      g.debris = g.debris.filter((d) => {
+        const keep = d.life > 0 && d.y < H + geo.S * 2;
+        if (!keep) d.img.width = d.img.height = 0;
+        return keep;
+      });
+      if (g.debris.length > MAX_DEBRIS) {
+        for (const d of g.debris.splice(0, g.debris.length - MAX_DEBRIS)) d.img.width = d.img.height = 0;
+      }
 
       for (const s of g.sparks) {
         s.vy += grav * 0.5 * sim;
@@ -1238,7 +1246,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const hintUntil = introEnd + 7;
       if (g.time < hintUntil) {
         const hint = coarse
-          ? "DRAG TO MOVE · SWIPE FAST = SMASH · TAP TO EXIT"
+          ? "DRAG OR TAP TO MOVE · SWIPE FAST = SMASH · ✕ TO EXIT"
           : "MOUSE OR ← → TO MOVE · SWIPE FAST (OR SHIFT) = SMASH · ESC TO EXIT";
         const fade = clamp(hintUntil - g.time, 0, 1);
         ctx.textAlign = "center";
@@ -1296,7 +1304,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (g.flash > 0) {
-        ctx.globalAlpha = g.flash * 0.35;
+        ctx.globalAlpha = g.flash * 0.35 * motion;
         ctx.fillStyle = g.flashColor;
         ctx.fillRect(0, 0, W, H);
         ctx.globalAlpha = 1;
@@ -1321,8 +1329,13 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     const loop = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      update(dt);
-      draw();
+      // Once the result screen is up and the last shards have settled, stop redrawing
+      // (the screensaver often runs with nobody watching); Play again resumes it.
+      const settled = g.phase === "over" && g.resultSent && !g.debris.length && !g.sparks.length && !g.texts.length;
+      if (!settled) {
+        update(dt);
+        draw();
+      }
       raf = requestAnimationFrame(loop);
     };
 
@@ -1350,6 +1363,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         exit();
         return;
       }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // Let the overlay's own buttons (and any field) handle their keys
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "BUTTON" || el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
       // A press is applied right away as a nudge, so quick taps that start and end
       // between two frames still move the paddle; holding keeps it gliding.
       const step = Math.max(W * 0.05, 30);
@@ -1370,14 +1387,23 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       else if (e.key === "Shift") input.boost = false;
     };
 
+    // The canvas is stretched to the viewport, which can differ from W (min width, small resizes)
+    const toGameX = (clientX: number) => (clientX * W) / (canvas.clientWidth || W);
+
+    // A keyup lost while the window was in the background must not leave a key "held"
+    const onBlur = () => {
+      input.left = input.right = input.boost = false;
+    };
+
     let mouseSeen = false;
     const onMouseMove = (e: MouseEvent) => {
-      input.pointerX = e.clientX;
+      input.pointerX = toGameX(e.clientX);
       if (!mouseSeen) {
         mouseSeen = true;
         input.snap = true;
       }
     };
+    const onWheel = (e: WheelEvent) => e.preventDefault(); // keep the page behind from scrolling
     const onMouseDown = () => {
       input.serve = true;
     };
@@ -1395,26 +1421,30 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       touchStartY = t.clientY;
       touchStartTime = performance.now();
       touchMoved = false;
-      input.pointerX = t.clientX;
+      input.pointerX = toGameX(t.clientX);
       input.snap = true;
     };
     const onTouchMove = (e: TouchEvent) => {
       const t = e.touches[0];
       if (!t) return;
       e.preventDefault();
-      input.pointerX = t.clientX;
+      input.pointerX = toGameX(t.clientX);
       if (Math.abs(t.clientX - touchStartX) > 14 || Math.abs(t.clientY - touchStartY) > 14) touchMoved = true;
     };
     const onTouchEnd = (e: TouchEvent) => {
       if (e.touches.length > 0) return;
-      if (!touchMoved && performance.now() - touchStartTime < 250) exit();
+      // Mid-rally a tap just moves the paddle (tapping where the ball lands is how you
+      // play); during the intro and on the result screen a quick tap still exits.
+      if (g.phase !== "play" && !touchMoved && performance.now() - touchStartTime < 250) exit();
     };
 
     window.addEventListener("resize", onResize);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
     window.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mousedown", onMouseDown);
+    canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("touchstart", onTouchStart, { passive: false });
     canvas.addEventListener("touchmove", onTouchMove, { passive: false });
     canvas.addEventListener("touchend", onTouchEnd);
@@ -1425,18 +1455,51 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       window.removeEventListener("resize", onResize);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
       window.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mousedown", onMouseDown);
+      canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("touchstart", onTouchStart);
       canvas.removeEventListener("touchmove", onTouchMove);
       canvas.removeEventListener("touchend", onTouchEnd);
+      // Give the big offscreen canvases back right away (iOS caps total canvas memory)
+      for (const c of [source, screen, bg]) {
+        c.width = 0;
+        c.height = 0;
+      }
     };
   }, [snapshot, exit]);
+
+  // While the game is up, nothing on the page behind it keeps keyboard focus, so a
+  // half-written form field can't swallow the keys meant for the paddle.
+  // (Refs, so React's dev double-mount doesn't record "nothing focused" or refocus mid-game.)
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+  const refocusTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    clearTimeout(refocusTimerRef.current);
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active !== document.body) {
+      prevFocusRef.current = active;
+      active.blur();
+    }
+    return () => {
+      // Next tick: the page behind is still inert while this unmounts, and inert content can't take focus
+      refocusTimerRef.current = setTimeout(() => {
+        const prev = prevFocusRef.current;
+        if (prev?.isConnected) prev.focus({ preventScroll: true });
+      }, 0);
+    };
+  }, []);
 
   const headline = result ? (result.winner === "player" ? "YOU WIN!" : result.winner === "cpu" ? "CPU WINS" : "DRAW") : "";
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#06070b" }}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Screensaver game"
+      style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#06070b" }}
+    >
       <canvas
         ref={canvasRef}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "none", touchAction: "none" }}
