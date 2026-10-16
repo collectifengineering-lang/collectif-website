@@ -126,7 +126,9 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
   const onExitRef = useRef(onExit);
   const exitedRef = useRef(false);
   const restartRef = useRef<() => void>(() => {});
+  const pauseRef = useRef<() => void>(() => {});
   const [result, setResult] = useState<MatchResult | null>(null);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     onExitRef.current = onExit;
@@ -201,6 +203,9 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       right: false,
       boost: false,
       nudge: 0, // px of keyboard taps not yet applied
+      holdT: 0, // seconds an arrow key has been held (the paddle speeds up)
+      code: 0, // how far into the secret code
+      codeAt: -10, // when the last correct code key was pressed
       serve: false,
       snap: false,
     };
@@ -224,6 +229,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       meter: { player: 0, cpu: 0 }, // bomb charge 0..1; full = next hit sends a bomb
       kos: 0, // paddles you blew up
       secretUsed: false,
+      paused: false,
       megaArmed: false, // secret code entered: the next player hit lights a MEGA BOMB
       cpuBombs: 0,
       desat: 0, // seconds of black-and-white after a big blast
@@ -441,6 +447,8 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     const newMatch = () => {
       buildField();
+      g.paused = false;
+      setPaused(false);
       g.phase = "intro";
       g.time = 0;
       g.playTime = 0;
@@ -520,7 +528,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     // The secret code (Konami / triple-tap) arms the exclusive MEGA BOMB, once per match
     const secretBomb = () => {
-      if (g.secretUsed || g.phase !== "play") return;
+      if (g.secretUsed || g.phase === "over") return;
       g.secretUsed = true;
       g.megaArmed = true;
       g.flash = 0.5;
@@ -885,7 +893,9 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const p = side === "player" ? g.player : g.cpu;
       const dir = side === "player" ? -1 : 1;
       const off = isServe ? 0 : clamp((b.x - p.x) / (p.w / 2), -1, 1);
-      let swipe = clamp(p.vx / geo.pvRef, -1.6, 1.6);
+      // Gliding on the arrow keys isn't a swipe: only Shift turns keyboard speed into a smash
+      const kbDamp = side === "player" && (input.left || input.right) && !input.boost ? 0.5 : 1;
+      let swipe = clamp((p.vx * kbDamp) / geo.pvRef, -1.6, 1.6);
       if (side === "cpu" && ai.smash) {
         swipe = clamp(swipe + ai.swipeDir * rand(0.75, 1.1) * (0.6 + 0.4 * g.d), -1.6, 1.6);
         ai.smash = false;
@@ -1036,9 +1046,11 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
     const updatePlayer = (dt: number) => {
       const P = g.player;
+      input.holdT = input.left || input.right ? input.holdT + dt : 0;
       if (input.left || input.right || input.nudge !== 0) {
         const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
-        const kb = Math.max(W * 1.1, 700) * (input.boost ? 1.9 : 1);
+        // Starts precise, ramps to about twice the old top speed within a third of a second
+        const kb = Math.max(W, 700) * (1.2 + Math.min(1, input.holdT / 0.35)) * (input.boost ? 1.5 : 1);
         input.pointerX = clamp((input.pointerX ?? P.x) + dir * kb * dt + input.nudge, P.w / 2, W - P.w / 2);
         input.nudge = 0;
       }
@@ -1565,10 +1577,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       ctx.textAlign = "left";
       pixelText(`YOU ${g.score.player}`, 14, top, PLAYER_COLOR, size);
       ctx.textAlign = "right";
-      pixelText(`${g.score.cpu} CPU`, W - 58, top, CPU_COLOR, size);
+      pixelText(`${g.score.cpu} CPU`, W - 102, top, CPU_COLOR, size);
 
       // Tug-of-war bar: how much of the screen each side has destroyed
-      const bw = geo.narrow ? W - 76 : Math.min(W * 0.32, 340);
+      const bw = geo.narrow ? W - 120 : Math.min(W * 0.32, 340);
       const bx = geo.narrow ? 14 : (W - bw) / 2;
       const by = geo.narrow ? top + size + 8 : top + 2;
       const bh = 8;
@@ -1589,7 +1601,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
 
       const my = geo.narrow ? by + bh + 22 : top + size + 12;
       drawMeter("player", 14, my, false);
-      drawMeter("cpu", W - 58, my, true);
+      drawMeter("cpu", W - 102, my, true);
       if (g.megaArmed && Math.floor(g.time * 5) % 2 === 0) {
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
@@ -1602,10 +1614,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const hintUntil = introEnd + 7;
       if (g.time < hintUntil) {
         const hint = coarse
-          ? "DRAG TO MOVE - SWIPE FAST = SMASH"
+          ? "DRAG TO MOVE - SWIPE FAST = SMASH - II PAUSE"
           : geo.narrow
-            ? "MOUSE MOVES - SWIPE = SMASH - ESC"
-            : "MOUSE OR ARROWS MOVE - SWIPE FAST/SHIFT = SMASH - ESC EXIT";
+            ? "MOUSE MOVES - SWIPE = SMASH - P PAUSE"
+            : "MOUSE/ARROWS MOVE - SWIPE OR SHIFT = SMASH - P PAUSE - ESC EXIT";
         ctx.textAlign = "center";
         pixelText(hint, W / 2, H - 10, "#ffffff", small, clamp(hintUntil - g.time, 0, 1));
       } else if (g.lastSpeed > 0) {
@@ -1622,6 +1634,34 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         const blink = Math.floor(g.time * 4) % 2 === 0 ? 1 : 0.75;
         pixelText("SCREEN FROZEN", W / 2, H / 2, "#ffffff", geo.narrow ? 18 : 32, blink);
       }
+    };
+
+    // Secret-code progress: one slot per key, filled as you type it right
+    const drawCodeSlots = (y: number, alpha: number) => {
+      const n = KONAMI.length;
+      const sz = geo.narrow ? 10 : 14;
+      const gap = 6;
+      const x0 = Math.round(W / 2 - (n * (sz + gap) - gap) / 2);
+      ctx.globalAlpha = alpha;
+      for (let i = 0; i < n; i++) {
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(x0 + i * (sz + gap) - 2, y - 2, sz + 4, sz + 4);
+        ctx.fillStyle = i < input.code ? rainbow(i * 36) : "rgba(255,255,255,0.25)";
+        ctx.fillRect(x0 + i * (sz + gap), y, sz, sz);
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const drawPause = () => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      pixelText("PAUSED", W / 2, H * 0.4, "#ffffff", geo.narrow ? 22 : 32);
+      pixelText(coarse ? "TAP TO RESUME" : "P, SPACE OR II TO RESUME", W / 2, H * 0.4 + 44, "rgba(255,255,255,0.85)", 10);
+      if (input.code > 0 || g.megaArmed) drawCodeSlots(Math.round(H * 0.4 + 80), 1);
+      if (g.megaArmed) pixelText("MEGA BOMB ARMED", W / 2, H * 0.4 + 120, rainbow(0), 10);
     };
 
     const draw = () => {
@@ -1720,10 +1760,12 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }
 
       drawHud();
+      // While you're typing the code mid-game, show how far you've got for a moment
+      if (!g.paused && input.code >= 3 && g.time - input.codeAt < 1.5) drawCodeSlots(H - 52, 0.9);
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      for (const t of g.texts) {
+      for (const t of g.paused ? [] : g.texts) { // the pause screen has its own text
         const k = t.life / t.maxLife;
         const pop = k > 0.85 ? 1 + (k - 0.85) * 2.5 : 1;
         const size = Math.round(t.size * pop);
@@ -1743,12 +1785,27 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       // Once the result screen is up and the last shards have settled, stop redrawing
       // (the screensaver often runs with nobody watching); Play again resumes it.
       const settled = g.phase === "over" && g.resultSent && !g.debris.length && !g.sparks.length && !g.texts.length;
-      if (!settled) {
+      if (g.paused) {
+        draw();
+        drawPause();
+      } else if (!settled) {
         update(dt);
         draw();
       }
       raf = requestAnimationFrame(loop);
     };
+
+    // Pause: P / Space, the II button, or automatically when you leave the window
+    const setPause = (on: boolean) => {
+      if (on && g.phase === "over") return;
+      if (g.paused === on) return;
+      g.paused = on;
+      input.left = input.right = input.boost = false;
+      input.nudge = 0;
+      input.snap = true; // no velocity spike from where the pointer went while paused
+      setPaused(on);
+    };
+    pauseRef.current = () => setPause(!g.paused);
 
     newMatch();
     restartRef.current = () => {
@@ -1769,7 +1826,6 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       }, 250);
     };
 
-    let konamiPos = 0;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         exit();
@@ -1781,12 +1837,26 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
       if (el && el.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
-      // Secret: ↑ ↑ ↓ ↓ ← → ← → B A arms a bomb (once per match)
       const key = e.key.toLowerCase();
-      konamiPos = key === KONAMI[konamiPos] ? konamiPos + 1 : key === KONAMI[0] ? 1 : 0;
-      if (konamiPos === KONAMI.length) {
-        konamiPos = 0;
-        secretBomb();
+      if (key === "p") {
+        setPause(!g.paused);
+        e.preventDefault();
+        return;
+      }
+      // Secret: ↑ ↑ ↓ ↓ ← → ← → B A arms the MEGA BOMB (once per match). Held-key
+      // auto-repeat doesn't count, so it can't knock you out of the sequence.
+      if (!e.repeat) {
+        input.code = key === KONAMI[input.code] ? input.code + 1 : key === KONAMI[0] ? 1 : 0;
+        if (input.code > 0) input.codeAt = g.time;
+        if (input.code === KONAMI.length) {
+          input.code = 0;
+          secretBomb();
+        }
+      }
+      if (g.paused) {
+        if (key === " " || key === "enter") setPause(false);
+        e.preventDefault();
+        return;
       }
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault(); // part of the code; also keeps the page behind from scrolling
@@ -1818,6 +1888,10 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     // A keyup lost while the window was in the background must not leave a key "held"
     const onBlur = () => {
       input.left = input.right = input.boost = false;
+      setPause(true);
+    };
+    const onVisibility = () => {
+      if (document.hidden) setPause(true);
     };
 
     let mouseSeen = false;
@@ -1868,17 +1942,20 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       const tap = !touchMoved && now - touchStartTime < 250;
       // Mid-rally a tap just moves the paddle (tapping where the ball lands is how you
       // play); during the intro and on the result screen a quick tap still exits.
-      if (g.phase !== "play" && tap) {
+      if (g.phase !== "play" && tap && !g.paused) {
         exit();
         return;
       }
-      // Secret on touch: triple-tap your score (top left) to arm a bomb, once per match
-      if (tap && toGameX(touchStartX) < Math.min(W * 0.5, 200) && touchStartY < (geo.narrow ? 80 : 60)) {
+      // Secret on touch: triple-tap your score (top left) to arm the MEGA BOMB, once per match
+      const onScore = toGameX(touchStartX) < Math.min(W * 0.5, 200) && touchStartY < (geo.narrow ? 80 : 60);
+      if (tap && onScore) {
         scoreTaps = [...scoreTaps.filter((t) => now - t < 900), now];
         if (scoreTaps.length >= 3) {
           scoreTaps = [];
           secretBomb();
         }
+      } else if (tap && g.paused) {
+        setPause(false);
       }
     };
 
@@ -1886,6 +1963,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
     window.addEventListener("blur", onBlur);
+    document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mousedown", onMouseDown);
     canvas.addEventListener("wheel", onWheel, { passive: false });
@@ -1900,6 +1978,7 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mousedown", onMouseDown);
       canvas.removeEventListener("wheel", onWheel);
@@ -1950,6 +2029,18 @@ export const PongGame = ({ onExit, snapshot }: PongGameProps) => {
         ref={canvasRef}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "none", touchAction: "none", imageRendering: "pixelated" }}
       />
+      <button
+        type="button"
+        onClick={(e) => {
+          e.currentTarget.blur(); // keep the arrows on the paddle, not the button
+          pauseRef.current();
+        }}
+        aria-label={paused ? "Resume game" : "Pause game"}
+        className="absolute top-3 flex h-9 w-9 items-center justify-center border-2 border-white bg-black text-xs leading-none text-white hover:bg-[#222]"
+        style={{ right: 56, cursor: "pointer", boxShadow: "4px 4px 0 #000" }}
+      >
+        {paused ? ">" : "II"}
+      </button>
       <button
         type="button"
         onClick={exit}
